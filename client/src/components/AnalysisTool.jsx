@@ -112,7 +112,7 @@ export default function AnalysisTool() {
       <div className="max-w-5xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-[#dde8f4] text-[#1356be] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase">
+          <div className="inline-flex items-center gap-2 bg-[#a9bb9d]/10 border border-[#a9bb9d]/30 text-[#5a7a52] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase">
             Analysis Tool
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0b1e40] mb-4">
@@ -150,8 +150,8 @@ export default function AnalysisTool() {
           className={`
             w-full py-4 rounded-xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-3
             ${canAnalyze
-              ? "bg-[#1356be] hover:bg-[#0e45a0] text-white hover:shadow-xl hover:shadow-blue-200 hover:-translate-y-0.5 cursor-pointer"
-              : "bg-[#f0f5ff] border border-[#dde8f4] text-[#94a3b8] cursor-not-allowed"
+              ? "bg-[#a9bb9d] hover:bg-[#8fa88a] text-white hover:shadow-xl hover:shadow-[#a9bb9d]/30 hover:-translate-y-0.5 cursor-pointer"
+              : "bg-[#f0f7f4] border border-[#a9bb9d]/20 text-[#94a3b8] cursor-not-allowed"
             }
           `}
         >

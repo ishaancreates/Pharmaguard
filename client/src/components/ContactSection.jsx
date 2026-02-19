@@ -2,7 +2,7 @@ export default function ContactSection() {
   return (
     <section
       id="contact"
-      className="py-16 bg-[#f7fafc] text-[#0b1e40] border-t border-[#dde8f4]"
+      className="py-16 bg-gradient-to-b from-white to-[#f0f7f4] text-[#0b1e40] border-t border-[#a9bb9d]/20"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-extrabold text-center mb-8">
@@ -50,7 +50,7 @@ export default function ContactSection() {
           </div>
           <button
             type="submit"
-            className="w-full bg-[#1356be] text-white font-semibold py-2.5 rounded-lg shadow-md hover:bg-[#0f4a9c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="w-full bg-[#a9bb9d] text-white font-semibold py-2.5 rounded-lg shadow-md hover:bg-[#8fa88a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a9bb9d] transition-all duration-300"
           >
             Submit
           </button>

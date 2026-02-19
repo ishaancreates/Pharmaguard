@@ -33,7 +33,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[#1356be] flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[#a9bb9d] flex items-center justify-center shrink-0">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -49,7 +49,7 @@ export default function Footer() {
                 </svg>
               </div>
               <span className="text-lg font-bold text-white">
-                Pharma<span className="text-[#5a9cf5]">Guard</span>
+                Pharma<span className="text-[#a9bb9d]">Guard</span>
               </span>
             </div>
             <p className="text-white/50 text-sm leading-relaxed mb-5">
@@ -88,7 +88,7 @@ export default function Footer() {
                           ? "noopener noreferrer"
                           : undefined
                       }
-                      className="text-white/40 hover:text-[#5a9cf5] text-sm transition-colors inline-flex items-center gap-1 group"
+                      className="text-white/40 hover:text-[#a9bb9d] text-sm transition-colors inline-flex items-center gap-1 group"
                     >
                       {item.label}
                       {item.href.startsWith("http") && (

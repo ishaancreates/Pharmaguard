@@ -34,10 +34,10 @@ export default function DrugInput({ drugs, onChange }) {
   };
 
   return (
-    <div className="bg-white border border-[#dde8f4] rounded-2xl p-6 shadow-sm">
+    <div className="bg-white border border-[#a9bb9d]/20 rounded-2xl p-6 shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-[#dde8f4] flex items-center justify-center text-[#1356be] text-sm font-bold">
+        <div className="w-8 h-8 rounded-lg bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 flex items-center justify-center text-[#5a7a52] text-sm font-bold">
           02
         </div>
         <div>
@@ -58,14 +58,13 @@ export default function DrugInput({ drugs, onChange }) {
             <button
               key={drug.name}
               onClick={() => toggleDrug(drug.name)}
-              className={`relative p-3 rounded-xl border text-left transition-all duration-150 group ${
-                active
-                  ? "border-[#1356be]/50 bg-blue-50"
-                  : "border-[#dde8f4] hover:border-[#1356be]/30 hover:bg-blue-50/50"
-              }`}
+              className={`relative p-3 rounded-xl border text-left transition-all duration-150 group ${active
+                  ? "border-[#a9bb9d]/50 bg-[#a9bb9d]/10"
+                  : "border-[#a9bb9d]/20 hover:border-[#a9bb9d]/40 hover:bg-[#a9bb9d]/5"
+                }`}
             >
               {active && (
-                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#1356be] flex items-center justify-center">
+                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#a9bb9d] flex items-center justify-center">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -82,7 +81,7 @@ export default function DrugInput({ drugs, onChange }) {
                 </div>
               )}
               <div
-                className={`text-xs font-bold mb-0.5 ${active ? "text-[#1356be]" : "text-[#0b1e40]"}`}
+                className={`text-xs font-bold mb-0.5 ${active ? "text-[#5a7a52]" : "text-[#0b1e40]"}`}
               >
                 {drug.name}
               </div>
@@ -90,7 +89,7 @@ export default function DrugInput({ drugs, onChange }) {
                 {drug.gene}
               </div>
               <div
-                className={`text-[10px] mt-0.5 ${active ? "text-[#1356be]/70" : "text-[#94a3b8]"}`}
+                className={`text-[10px] mt-0.5 ${active ? "text-[#5a7a52]/70" : "text-[#94a3b8]"}`}
               >
                 {drug.desc}
               </div>
@@ -107,19 +106,19 @@ export default function DrugInput({ drugs, onChange }) {
           onChange={(e) => setCustomValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Add other drug (e.g. METFORMIN)..."
-          className="flex-1 bg-white border border-[#dde8f4] focus:border-[#1356be]/50 text-[#0b1e40] text-xs px-3 py-2.5 rounded-xl outline-none placeholder:text-[#94a3b8] transition-colors"
+          className="flex-1 bg-white border border-[#a9bb9d]/20 focus:border-[#a9bb9d]/50 text-[#0b1e40] text-xs px-3 py-2.5 rounded-xl outline-none placeholder:text-[#94a3b8] transition-colors"
         />
         <button
           onClick={addCustom}
           disabled={!customValue.trim()}
-          className="px-3 py-2.5 bg-blue-50 border border-[#dde8f4] hover:border-[#1356be]/40 hover:bg-blue-100 disabled:opacity-40 disabled:cursor-not-allowed text-[#1356be] rounded-xl transition-all text-xs font-semibold"
+          className="px-3 py-2.5 bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 hover:border-[#a9bb9d]/40 hover:bg-[#a9bb9d]/20 disabled:opacity-40 disabled:cursor-not-allowed text-[#5a7a52] rounded-xl transition-all text-xs font-semibold"
         >
           Add
         </button>
       </div>
 
       {drugs.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-[#dde8f4]">
+        <div className="mt-3 pt-3 border-t border-[#a9bb9d]/20">
           <p className="text-[#94a3b8] text-[10px] font-semibold uppercase tracking-widest mb-2">
             Selected ({drugs.length})
           </p>
@@ -127,7 +126,7 @@ export default function DrugInput({ drugs, onChange }) {
             {drugs.map((d) => (
               <span
                 key={d}
-                className="inline-flex items-center gap-1.5 bg-blue-50 border border-[#1356be]/25 text-[#1356be] text-xs px-2.5 py-1 rounded-full font-semibold"
+                className="inline-flex items-center gap-1.5 bg-[#a9bb9d]/10 border border-[#a9bb9d]/25 text-[#5a7a52] text-xs px-2.5 py-1 rounded-full font-semibold"
               >
                 {d}
                 <button

@@ -102,11 +102,11 @@ const DRUG_GENE_MAP = [
 
 export default function SupportedGenesDrugs() {
   return (
-    <section id="genes" className="py-24 px-4 bg-[#f0f5ff]">
+    <section id="genes" className="py-24 px-4 bg-gradient-to-b from-white to-[#f0f7f4]">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 bg-white border border-[#dde8f4] text-[#1356be] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase shadow-sm">
+          <div className="inline-flex items-center gap-2 bg-white border border-[#a9bb9d]/30 text-[#5a7a52] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase shadow-sm">
             Database
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0b1e40] mb-4 tracking-tight">
@@ -200,7 +200,7 @@ export default function SupportedGenesDrugs() {
                   {gene.variants.map((v) => (
                     <span
                       key={v}
-                      className="text-[10px] font-mono bg-white border border-[#dde8f4] text-[#0b1e40] px-2 py-0.5 rounded"
+                      className="text-[10px] font-mono bg-white border border-[#a9bb9d]/20 text-[#0b1e40] px-2 py-0.5 rounded"
                     >
                       {v}
                     </span>
@@ -212,8 +212,8 @@ export default function SupportedGenesDrugs() {
         </div>
 
         {/* ── Drug-Gene Interaction Table ── */}
-        <div className="bg-white border border-[#dde8f4] rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-[#dde8f4]">
+        <div className="bg-white border border-[#a9bb9d]/20 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-[#a9bb9d]/20">
             <h3 className="text-[#0b1e40] font-bold text-lg">
               Drug–Gene Interactions
             </h3>
@@ -224,7 +224,7 @@ export default function SupportedGenesDrugs() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#dde8f4] bg-[#f0f5ff]">
+                <tr className="border-b border-[#a9bb9d]/20 bg-[#f0f7f4]">
                   <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-6 py-3">
                     Drug
                   </th>
@@ -243,9 +243,8 @@ export default function SupportedGenesDrugs() {
                 {DRUG_GENE_MAP.map((row, i) => (
                   <tr
                     key={row.drug}
-                    className={`border-b border-[#dde8f4] hover:bg-blue-50/60 transition-colors ${
-                      i === DRUG_GENE_MAP.length - 1 ? "border-none" : ""
-                    }`}
+                    className={`border-b border-[#a9bb9d]/20 hover:bg-[#a9bb9d]/5 transition-colors ${i === DRUG_GENE_MAP.length - 1 ? "border-none" : ""
+                      }`}
                   >
                     <td className="px-6 py-3.5">
                       <span className="text-[#0b1e40] text-sm font-semibold font-mono">
@@ -253,7 +252,7 @@ export default function SupportedGenesDrugs() {
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="text-[#1356be] text-xs font-bold font-mono bg-blue-50 border border-[#1356be]/25 px-2 py-0.5 rounded">
+                      <span className="text-[#5a7a52] text-xs font-bold font-mono bg-[#a9bb9d]/10 border border-[#a9bb9d]/25 px-2 py-0.5 rounded">
                         {row.gene}
                       </span>
                     </td>

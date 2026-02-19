@@ -34,18 +34,18 @@ const navItems = [
 ];
 
 const logo = (
-    <a href="#" className="flex items-center gap-2.5 shrink-0">
-              <img src="/3.svg" alt="PharmaGuard" className="w-20 h-auto" />
-             
-            </a>
+  <a href="#" className="flex items-center gap-2.5 shrink-0">
+    <img src="/3.svg" alt="PharmaGuard" className="w-20 h-auto" />
 
-  
+  </a>
+
+
 );
 
 const ctaButton = (
   <a
     href="#analyze"
-    className="relative rounded-full bg-[#a9bb9d] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[#0e45a0] hover:shadow-lg hover:shadow-[#1356be]/30 flex items-center gap-1.5"
+    className="relative rounded-full bg-[#a9bb9d] px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#8fa88a] hover:shadow-lg hover:shadow-[#a9bb9d]/30 flex items-center gap-1.5"
   >
     <IconRocket className="h-3.5 w-3.5" />
     <span>Let&apos;s Start</span>
@@ -62,7 +62,7 @@ export default function NavBar() {
             {/* Logo */}
             <a href="#" className="flex items-center gap-2.5 shrink-0">
               <img src="/3.svg" alt="PharmaGuard" className="w-40 h-auto" />
-             
+
             </a>
 
             {/* Desktop links */}
@@ -71,7 +71,7 @@ export default function NavBar() {
                 <a
                   key={item.name}
                   href={item.link}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-[#0b1e40]/70 hover:bg-[#a9bb9d]/10 hover:text-[#0b1e40] transition-colors duration-200"
                 >
                   {item.icon}
                   {item.name}
@@ -82,7 +82,7 @@ export default function NavBar() {
             {/* CTA */}
             <a
               href="#analyze"
-              className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-5 py-2 text-sm font-semibold text-white hover:bg-[#0e45a0] hover:shadow-lg hover:shadow-[#1356be]/30 transition-all"
+              className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-5 py-2 text-sm font-semibold text-white hover:bg-[#8fa88a] hover:shadow-lg hover:shadow-[#a9bb9d]/30 transition-all duration-300"
             >
               <IconRocket className="h-3.5 w-3.5" />
               Let&apos;s Start
@@ -91,7 +91,7 @@ export default function NavBar() {
             {/* Mobile: just the CTA pill */}
             <a
               href="#analyze"
-              className="md:hidden inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#0e45a0] transition-all"
+              className="md:hidden inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#8fa88a] transition-all duration-300"
             >
               <IconRocket className="h-3 w-3" />
               Start
