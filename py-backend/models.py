@@ -4,6 +4,8 @@ from datetime import datetime
 # users
 # profiles
 # posts
+# conversations
+# messages
 
 class GeneticUser:
     def __init__(self, username, vcf_hash, id=None):
@@ -46,6 +48,7 @@ class CommunityPost:
         self.upvotes = upvotes
         self.created_at = datetime.utcnow()
         self.comments = [] # List of dicts
+        self.comments_count = 0
 
     def to_dict(self):
         return {
@@ -56,7 +59,8 @@ class CommunityPost:
             "drug": self.drug,
             "upvotes": self.upvotes,
             "created_at": self.created_at,
-            "comments": self.comments
+            "comments": self.comments,
+            "comments_count": self.comments_count
         }
 
 class PostComment:
@@ -66,3 +70,35 @@ class PostComment:
         self.post_id = post_id
         self.content = content
         self.created_at = datetime.utcnow()
+
+class Conversation:
+    def __init__(self, participants, last_message=None, updated_at=None, id=None):
+        self.id = id
+        self.participants = participants  # List of user_ids
+        self.last_message = last_message  # Preview of last message
+        self.updated_at = updated_at or datetime.utcnow()
+
+    def to_dict(self):
+        return {
+            "participants": self.participants,
+            "last_message": self.last_message,
+            "updated_at": self.updated_at
+        }
+
+class Message:
+    def __init__(self, conversation_id, sender_id, content, id=None):
+        self.id = id
+        self.conversation_id = conversation_id
+        self.sender_id = sender_id
+        self.content = content
+        self.created_at = datetime.utcnow()
+        self.read = False
+
+    def to_dict(self):
+        return {
+            "conversation_id": self.conversation_id,
+            "sender_id": self.sender_id,
+            "content": self.content,
+            "created_at": self.created_at,
+            "read": self.read
+        }

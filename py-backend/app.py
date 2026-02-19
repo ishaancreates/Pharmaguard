@@ -303,6 +303,164 @@ def seed_db():
     return jsonify({"status": "seeded", "user_ids": [str(u1_id), str(u2_id)]})
 
 # ---------------------------------------------------------------------------
+# Chat Routes
+# ---------------------------------------------------------------------------
+
+@app.route("/api/chat/start", methods=["POST"])
+def start_chat():
+    """Start a conversation with another user."""
+    if db is None:
+         return jsonify({"error": "Database not connected"}), 503
+
+    data = request.json
+    # current_user_id = data.get("current_user_id") # In real app, from auth
+    target_user_id = data.get("target_user_id")
+    
+    # For demo, if current_user_id not provided, use a default seeding user
+    current_user_id = data.get("current_user_id")
+    if not current_user_id:
+         # Try to find "Ishaan_Genetics" from seed
+         u = db.users.find_one({"username": "Ishaan_Genetics"})
+         current_user_id = str(u["_id"]) if u else None
+
+    if not current_user_id or not target_user_id:
+        return jsonify({"error": "Missing user IDs"}), 400
+
+    # formatting IDs
+    try:
+        pid1 = ObjectId(current_user_id)
+        pid2 = ObjectId(target_user_id)
+    except:
+        return jsonify({"error": "Invalid user IDs"}), 400
+
+    # Check if conversation exists
+    # We look for a conversation where participants has both IDs
+    # query: { "participants": { "$all": [pid1, pid2] } }
+    existing = db.conversations.find_one({
+        "participants": { "$all": [pid1, pid2] }
+    })
+
+    if existing:
+        return jsonify({"conversation_id": str(existing["_id"]), "new": False})
+
+    # Create new
+    new_convo = {
+        "participants": [pid1, pid2],
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+        "last_message": None
+    }
+    res = db.conversations.insert_one(new_convo)
+    
+    return jsonify({"conversation_id": str(res.inserted_id), "new": True})
+
+@app.route("/api/chat", methods=["GET"])
+def get_conversations():
+    """Get active conversations for the current user."""
+    user_id = request.args.get("user_id")
+    if not user_id:
+         # Fallback for demo
+         u = db.users.find_one({"username": "Ishaan_Genetics"})
+         user_id = str(u["_id"]) if u else None
+    
+    if not user_id:
+        return jsonify({"conversations": []})
+
+    try:
+        uid = ObjectId(user_id)
+    except:
+        return jsonify({"error": "Invalid User ID"}), 400
+
+    cursor = db.conversations.find({"participants": uid}).sort("updated_at", -1)
+    
+    results = []
+    for c in cursor:
+        # Find the "other" participant
+        other_id = [p for p in c["participants"] if p != uid]
+        other_id = other_id[0] if other_id else uid # Self chat?
+        
+        other_user = db.users.find_one({"_id": other_id})
+        username = other_user.get("username", "Unknown") if other_user else "Unknown"
+
+        results.append({
+            "id": str(c["_id"]),
+            "other_user_id": str(other_id),
+            "other_username": username,
+            "last_message": c.get("last_message"),
+            "updated_at": c.get("updated_at").isoformat() if c.get("updated_at") else None
+        })
+
+    return jsonify({"conversations": results})
+
+@app.route("/api/chat/<conversation_id>/messages", methods=["GET"])
+def get_messages(conversation_id):
+    try:
+        cid = ObjectId(conversation_id)
+    except:
+        return jsonify({"error": "Invalid ID"}), 400
+        
+    cursor = db.messages.find({"conversation_id": cid}).sort("created_at", 1).limit(100)
+    messages = []
+    for m in cursor:
+        messages.append({
+            "id": str(m["_id"]),
+            "sender_id": str(m["sender_id"]),
+            "content": m.get("content"),
+            "created_at": m.get("created_at").isoformat()
+        })
+        
+    return jsonify({"messages": messages})
+
+@app.route("/api/chat/<conversation_id>/messages", methods=["POST"])
+def send_message(conversation_id):
+    data = request.json
+    sender_id = data.get("sender_id")
+    content = data.get("content")
+    
+    if not content:
+        return jsonify({"error": "Empty message"}), 400
+
+    try:
+        cid = ObjectId(conversation_id)
+        
+        # Handle "me" alias for demo
+        if sender_id == "me":
+             u = db.users.find_one({"username": "Ishaan_Genetics"})
+             sid = u["_id"] if u else None
+        else:
+             sid = ObjectId(sender_id)
+             
+        if not sid:
+            return jsonify({"error": "User not found"}), 400
+            
+    except:
+        return jsonify({"error": "Invalid IDs"}), 400
+
+    msg = {
+        "conversation_id": cid,
+        "sender_id": sid,
+        "content": content,
+        "created_at": datetime.utcnow(),
+        "read": False
+    }
+    
+    db.messages.insert_one(msg)
+    
+    # Update conversation
+    db.conversations.update_one(
+        {"_id": cid},
+        {
+            "$set": {
+                "last_message": content[:50],
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    return jsonify({"status": "sent"})
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
