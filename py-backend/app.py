@@ -25,6 +25,8 @@ from groq import Groq
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
+
+
 from parser import parse_vcf, parse_vcf_bytes
 from analyzer import analyze
 from pgx_knowledgebase import get_all_drugs, KNOWN_GENES
@@ -40,7 +42,6 @@ from compatibility import calculate_inheritance
 from matcher import find_matches
 
 app = Flask(__name__)
-# Allow CORS
 CORS(app)
 
 # Max upload size: 50 MB
@@ -156,6 +157,86 @@ def health():
     # Optional: Check DB status
     db_status = "connected" if db is not None else "disconnected"
     return jsonify({"status": "ok", "db": db_status})
+
+
+# ---------------------------------------------------------------------------
+# Auth — Algorand Wallet-based Signup & Login
+# ---------------------------------------------------------------------------
+
+@app.route("/api/auth/signup", methods=["POST", "OPTIONS"])
+def auth_signup():
+    """Register a new user with their Algorand wallet address."""
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
+    if db is None:
+        return jsonify({"error": "Database not connected"}), 503
+
+    data = request.get_json(silent=True) or {}
+    wallet = data.get("wallet_address", "").strip()
+    role = data.get("role", "patient").strip()
+    full_name = data.get("fullName", "").strip()
+
+    if not wallet or len(wallet) != 58:
+        return jsonify({"error": "Invalid Algorand wallet address"}), 400
+    if role not in ("patient", "doctor"):
+        return jsonify({"error": "Role must be 'patient' or 'doctor'"}), 400
+    if not full_name:
+        return jsonify({"error": "Full name is required"}), 400
+
+    # Check if wallet already registered
+    if db.users.find_one({"wallet_address": wallet}):
+        return jsonify({"error": "An account with this wallet already exists"}), 409
+
+    user_doc = {
+        "wallet_address": wallet,
+        "role": role,
+        "fullName": full_name,
+        "created_at": datetime.utcnow(),
+    }
+    result = db.users.insert_one(user_doc)
+    user_doc["_id"] = str(result.inserted_id)
+
+    return jsonify({
+        "status": "ok",
+        "user": {
+            "id": user_doc["_id"],
+            "wallet_address": wallet,
+            "role": role,
+            "fullName": full_name,
+        },
+    }), 201
+
+
+@app.route("/api/auth/login", methods=["POST", "OPTIONS"])
+def auth_login():
+    """Look up an existing user by their Algorand wallet address."""
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
+    if db is None:
+        return jsonify({"error": "Database not connected"}), 503
+
+    data = request.get_json(silent=True) or {}
+    wallet = data.get("wallet_address", "").strip()
+
+    if not wallet:
+        return jsonify({"error": "Wallet address is required"}), 400
+
+    user = db.users.find_one({"wallet_address": wallet})
+    if not user:
+        return jsonify({"error": "No account found for this wallet. Please sign up first."}), 404
+
+    return jsonify({
+        "status": "ok",
+        "user": {
+            "id": str(user["_id"]),
+            "wallet_address": user["wallet_address"],
+            "role": user.get("role", "patient"),
+            "fullName": user.get("fullName", ""),
+        },
+    })
+
 
 
 @app.route("/drugs", methods=["GET"])

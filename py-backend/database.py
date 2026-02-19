@@ -31,8 +31,16 @@ def init_db():
 
     print("Initializing MongoDB indexes...")
     try:
-        # Users: Unique username
-        db.users.create_index("username", unique=True)
+        # Drop conflicting old indexes if they exist, then recreate
+        existing = db.users.index_information()
+        if "username_1" in existing:
+            db.users.drop_index("username_1")
+
+        # Users: Unique username (sparse — allows docs without username)
+        db.users.create_index("username", unique=True, sparse=True)
+        
+        # Users: Unique wallet address for Algorand auth
+        db.users.create_index("wallet_address", unique=True, sparse=True)
         
         # Profiles: Index for fast lookup
         db.profiles.create_index([("user_id", 1), ("gene", 1)])
