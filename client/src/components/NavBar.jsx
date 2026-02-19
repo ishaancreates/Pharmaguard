@@ -8,6 +8,7 @@ import {
   IconFlask,
   IconInfoCircle,
   IconRocket,
+  IconMessageCircle,
 } from "@tabler/icons-react";
 
 const navItems = [
@@ -36,10 +37,11 @@ const navItems = [
     link: "/ivf",
     icon: <IconHome className="h-4 w-4" />, // Replace with an appropriate IVF icon
   },
+
   {
     name: "Community",
     link: "/community",
-    icon: <IconHome className="h-4 w-4" />, // Replace with an appropriate IVF icon
+    icon: <IconMessageCircle className="h-4 w-4" />,
   },
 ];
 
