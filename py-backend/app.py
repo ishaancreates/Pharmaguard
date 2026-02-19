@@ -622,16 +622,28 @@ def get_feed():
     
     results = []
     for p in cursor:
-        # Fetch username manually if not embedded? 
-        # For simplicity, let's assume we store username in post or fetch it.
-        # But our models.py structure suggested user_id. 
-        # Let's simple fetch user.
-        user = db.users.find_one({"_id": p.get("user_id")})
-        username = user.get("username", "Unknown") if user else "Unknown"
+        # Use stored display_name first, then try to look up user
+        display_name = (p.get("display_name") or "").strip()
+        username = "Unknown"
+        uid = p.get("user_id")
+
+        if not display_name:
+            # Guest tokens start with "guest_" — no DB record exists
+            if isinstance(uid, str) and uid.startswith("guest_"):
+                display_name = "Guest"
+                username = "Guest"
+            else:
+                user = db.users.find_one({"_id": uid})
+                if not user and isinstance(uid, str):
+                    user = db.users.find_one({"wallet_address": uid})
+                if user:
+                    username = user.get("fullName") or user.get("username", "Unknown")
+                    display_name = username
 
         results.append({
             "id": str(p.get("_id")),
-            "username": username,
+            "username": display_name or username,
+            "display_name": display_name or username,
             "title": p.get("title"),
             "content": p.get("content"),
             "gene": p.get("gene"),
@@ -665,8 +677,15 @@ def create_post():
         except:
              user_id = data.get("user_id")
 
+    # Derive a display name: prefer what the frontend sent, then guess from user_id
+    raw_display = (data.get("display_name") or "").strip()
+    if not raw_display:
+        if isinstance(user_id, str) and user_id.startswith("guest_"):
+            raw_display = "Guest"
+
     new_post = {
         "user_id": user_id,
+        "display_name": raw_display,
         "title": data.get("title"),
         "content": data.get("content"),
         "gene": data.get("gene"),
