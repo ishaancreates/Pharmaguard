@@ -11,6 +11,7 @@ import {
     IconUserPlus,
     IconCheck,
     IconAlertTriangle,
+    IconUserCircle,
 } from "@tabler/icons-react";
 
 const ROLES = {
@@ -36,12 +37,13 @@ const ROLES = {
 
 export default function SignupPage() {
     const router = useRouter();
-    const { connectWallet, signup } = useAuth();
+    const { connectWallet, signup, loginAsGuest } = useAuth();
     const [selectedRole, setSelectedRole] = useState(null);
     const [fullName, setFullName] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [connectedAddress, setConnectedAddress] = useState(null);
+    const [guestMode, setGuestMode] = useState(false);
 
     const handleConnectWallet = async () => {
         setError("");
@@ -83,6 +85,16 @@ export default function SignupPage() {
             }
         }
         setLoading(false);
+    };
+
+    const handleGuestSignup = (e) => {
+        e.preventDefault();
+        if (!fullName.trim()) {
+            setError("Please enter your name.");
+            return;
+        }
+        loginAsGuest(selectedRole, fullName.trim());
+        router.push("/");
     };
 
     return (
@@ -181,6 +193,20 @@ export default function SignupPage() {
 
                             <div className="flex items-center gap-3 my-8">
                                 <div className="flex-1 h-px bg-[#a9bb9d]/10" />
+                                <span className="text-[10px] text-[#ccc] font-semibold uppercase tracking-wider">Or</span>
+                                <div className="flex-1 h-px bg-[#a9bb9d]/10" />
+                            </div>
+
+                            <button
+                                onClick={() => { loginAsGuest("patient"); router.push("/"); }}
+                                className="w-full py-3 rounded-xl border border-[#a9bb9d]/25 text-sm font-semibold text-[#777] hover:bg-[#f6f9f4] hover:text-[#555] transition-all flex items-center justify-center gap-2 cursor-pointer mb-5"
+                            >
+                                <IconUserCircle className="w-4 h-4" />
+                                Continue as Guest
+                            </button>
+
+                            <div className="flex items-center gap-3 my-8">
+                                <div className="flex-1 h-px bg-[#a9bb9d]/10" />
                                 <span className="text-[10px] text-[#ccc] font-semibold uppercase tracking-wider">Already a member?</span>
                                 <div className="flex-1 h-px bg-[#a9bb9d]/10" />
                             </div>
@@ -222,7 +248,7 @@ export default function SignupPage() {
                                 </div>
                             )}
 
-                            <form onSubmit={handleSignup} className="space-y-4">
+                            <form onSubmit={guestMode ? handleGuestSignup : handleSignup} className="space-y-4">
                                 {/* Full Name */}
                                 <div>
                                     <label className="text-[10px] font-semibold uppercase tracking-wider text-[#a9bb9d] block mb-1.5">Full Name</label>
@@ -239,55 +265,92 @@ export default function SignupPage() {
                                     </div>
                                 </div>
 
-                                {/* Wallet Connect */}
-                                <div>
-                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-[#a9bb9d] block mb-1.5">Algorand Wallet</label>
-                                    {connectedAddress ? (
-                                        <div className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center gap-2.5">
-                                            <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-semibold text-emerald-700">Wallet Connected</p>
-                                                <p className="text-[11px] text-emerald-600 font-mono mt-0.5 truncate">
-                                                    {connectedAddress}
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => setConnectedAddress(null)}
-                                                className="text-[10px] text-emerald-600 font-semibold hover:text-emerald-800 cursor-pointer"
-                                            >
-                                                Change
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={handleConnectWallet}
-                                            className="w-full py-3 rounded-xl border-2 border-dashed border-[#a9bb9d]/30 hover:border-[#a9bb9d]/60 text-sm font-medium text-[#a9bb9d] hover:bg-[#a9bb9d]/5 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                                        >
-                                            <IconWallet className="w-4 h-4" />
-                                            Connect Pera Wallet
-                                        </button>
-                                    )}
+                                {/* Mode toggle */}
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setGuestMode(false)}
+                                        className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${!guestMode ? "bg-[#a9bb9d]/15 text-[#6b8760] border border-[#a9bb9d]/30" : "text-[#bbb] hover:text-[#999]"}`}
+                                    >
+                                        <IconWallet className="w-3.5 h-3.5 inline mr-1" />
+                                        Wallet
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setGuestMode(true)}
+                                        className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${guestMode ? "bg-[#a9bb9d]/15 text-[#6b8760] border border-[#a9bb9d]/30" : "text-[#bbb] hover:text-[#999]"}`}
+                                    >
+                                        <IconUserCircle className="w-3.5 h-3.5 inline mr-1" />
+                                        Guest
+                                    </button>
                                 </div>
 
-                                {/* Algorand info */}
-                                <div className="p-3.5 rounded-xl bg-[#f6f9f4] border border-[#a9bb9d]/15">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                                            <path d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" stroke="#a9bb9d" strokeWidth="1.5" strokeLinejoin="round" />
-                                        </svg>
-                                        <span className="text-[10px] font-semibold text-[#6b8760]">Algorand Testnet</span>
+                                {/* Wallet Connect — only in wallet mode */}
+                                {!guestMode && (
+                                    <div>
+                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-[#a9bb9d] block mb-1.5">Algorand Wallet</label>
+                                        {connectedAddress ? (
+                                            <div className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center gap-2.5">
+                                                <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-semibold text-emerald-700">Wallet Connected</p>
+                                                    <p className="text-[11px] text-emerald-600 font-mono mt-0.5 truncate">
+                                                        {connectedAddress}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setConnectedAddress(null)}
+                                                    className="text-[10px] text-emerald-600 font-semibold hover:text-emerald-800 cursor-pointer"
+                                                >
+                                                    Change
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={handleConnectWallet}
+                                                className="w-full py-3 rounded-xl border-2 border-dashed border-[#a9bb9d]/30 hover:border-[#a9bb9d]/60 text-sm font-medium text-[#a9bb9d] hover:bg-[#a9bb9d]/5 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                            >
+                                                <IconWallet className="w-4 h-4" />
+                                                Connect Pera Wallet
+                                            </button>
+                                        )}
                                     </div>
-                                    <p className="text-[10px] text-[#999] leading-relaxed">
-                                        Your wallet address serves as your unique identity. No passwords to remember, no emails to verify.
-                                    </p>
-                                </div>
+                                )}
+
+                                {/* Algorand info — only in wallet mode */}
+                                {!guestMode && (
+                                    <div className="p-3.5 rounded-xl bg-[#f6f9f4] border border-[#a9bb9d]/15">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                                                <path d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" stroke="#a9bb9d" strokeWidth="1.5" strokeLinejoin="round" />
+                                            </svg>
+                                            <span className="text-[10px] font-semibold text-[#6b8760]">Algorand Testnet</span>
+                                        </div>
+                                        <p className="text-[10px] text-[#999] leading-relaxed">
+                                            Your wallet address serves as your unique identity. No passwords to remember, no emails to verify.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Guest info — only in guest mode */}
+                                {guestMode && (
+                                    <div className="p-3.5 rounded-xl bg-[#f6f9f4] border border-[#a9bb9d]/15">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <IconUserCircle className="w-3.5 h-3.5 text-[#6b8760]" />
+                                            <span className="text-[10px] font-semibold text-[#6b8760]">Guest Mode</span>
+                                        </div>
+                                        <p className="text-[10px] text-[#999] leading-relaxed">
+                                            Your session is stored locally on this device. No wallet or signup required. You can upgrade to a wallet-based account later.
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* Submit */}
                                 <button
                                     type="submit"
-                                    disabled={loading || !fullName.trim() || !connectedAddress}
+                                    disabled={loading || !fullName.trim() || (!guestMode && !connectedAddress)}
                                     className="w-full py-3.5 rounded-xl font-semibold text-sm text-white transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer mt-2"
                                     style={{ backgroundColor: ROLES[selectedRole].accent }}
                                 >
@@ -298,8 +361,8 @@ export default function SignupPage() {
                                         </svg>
                                     ) : (
                                         <>
-                                            Create Account
-                                            <IconUserPlus className="w-4 h-4" />
+                                            {guestMode ? "Continue as Guest" : "Create Account"}
+                                            {guestMode ? <IconUserCircle className="w-4 h-4" /> : <IconUserPlus className="w-4 h-4" />}
                                         </>
                                     )}
                                 </button>

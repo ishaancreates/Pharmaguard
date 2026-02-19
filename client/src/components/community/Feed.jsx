@@ -9,6 +9,8 @@ import {
   IconCornerUpRight,
 } from "@tabler/icons-react";
 
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function Feed({ refreshTrigger }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ export default function Feed({ refreshTrigger }) {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/community/feed");
+      const res = await fetch(`${API}/api/community/feed`);
       const data = await res.json();
       setPosts(data.posts || []);
     } catch (err) {
@@ -124,11 +126,10 @@ export default function Feed({ refreshTrigger }) {
               <div className="flex items-center rounded-full border border-[#a9bb9d]/15 overflow-hidden">
                 <button
                   onClick={() => handleVote(post.id, "up")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    voteState === "up"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors ${voteState === "up"
                       ? "bg-[#a9bb9d]/15 text-[#5a7a52]"
                       : "text-[#999] hover:bg-[#a9bb9d]/5 hover:text-[#5a7a52]"
-                  }`}
+                    }`}
                 >
                   <IconArrowUp className="w-3.5 h-3.5" />
                   <span>{displayVotes}</span>
@@ -136,11 +137,10 @@ export default function Feed({ refreshTrigger }) {
                 <div className="w-px h-4 bg-[#a9bb9d]/15" />
                 <button
                   onClick={() => handleVote(post.id, "down")}
-                  className={`px-2.5 py-1.5 transition-colors ${
-                    voteState === "down"
+                  className={`px-2.5 py-1.5 transition-colors ${voteState === "down"
                       ? "bg-red-50 text-red-400"
                       : "text-[#bbb] hover:bg-red-50 hover:text-red-400"
-                  }`}
+                    }`}
                 >
                   <IconArrowDown className="w-3.5 h-3.5" />
                 </button>

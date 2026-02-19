@@ -19,6 +19,8 @@ import {
     IconAtom,
     IconStethoscope,
     IconSparkles,
+    IconCode,
+    IconX,
 } from "@tabler/icons-react";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -90,6 +92,7 @@ export default function ResultsPage({ data }) {
     const [expandedDrug, setExpandedDrug] = useState(null);
     const [expandedGene, setExpandedGene] = useState(null);
     const [copied, setCopied] = useState(false);
+    const [showJson, setShowJson] = useState(false);
 
     const {
         results: drugResults = [],
@@ -132,6 +135,13 @@ export default function ResultsPage({ data }) {
                     </button>
 
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowJson(!showJson)}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold border border-[#a9bb9d]/30 rounded-full hover:bg-[#a9bb9d]/5 text-[#6b8760] transition-all cursor-pointer"
+                        >
+                            <IconCode className="w-3.5 h-3.5" />
+                            JSON
+                        </button>
                         <button
                             onClick={handleCopy}
                             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold border border-[#a9bb9d]/30 rounded-full hover:bg-[#a9bb9d]/5 text-[#6b8760] transition-all cursor-pointer"
@@ -356,6 +366,62 @@ export default function ResultsPage({ data }) {
                         professional. Results are based on CPIC guidelines and may not
                         account for all factors affecting drug response.
                     </p>
+                </div>
+            </div>
+
+            {/* ────────────  JSON DRAWER (Right Side)  ──────────── */}
+            {showJson && (
+                <div className="fixed inset-0 z-[60]" onClick={() => setShowJson(false)}>
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+                </div>
+            )}
+            <div
+                className={`fixed top-0 right-0 z-[70] h-full w-full max-w-lg bg-white border-l border-[#a9bb9d]/20 shadow-2xl shadow-black/10 transform transition-transform duration-300 ease-in-out ${showJson ? "translate-x-0" : "translate-x-full"
+                    } flex flex-col`}
+            >
+                {/* Drawer header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#a9bb9d]/15 bg-[#fafcf8] shrink-0">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-[#a9bb9d]/10 flex items-center justify-center">
+                            <IconCode className="w-4 h-4 text-[#6b8760]" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-[#1a1a1a]">Raw JSON Output</h3>
+                            <p className="text-[10px] text-[#999]">Full analysis response</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            onClick={handleCopy}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold border border-[#a9bb9d]/25 rounded-full hover:bg-[#a9bb9d]/5 text-[#6b8760] transition-all cursor-pointer"
+                        >
+                            {copied ? (
+                                <IconCheck className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                                <IconCopy className="w-3 h-3" />
+                            )}
+                            {copied ? "Copied" : "Copy"}
+                        </button>
+                        <button
+                            onClick={handleDownload}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold border border-[#a9bb9d]/25 rounded-full hover:bg-[#a9bb9d]/5 text-[#6b8760] transition-all cursor-pointer"
+                        >
+                            <IconDownload className="w-3 h-3" />
+                            Export
+                        </button>
+                        <button
+                            onClick={() => setShowJson(false)}
+                            className="p-1.5 rounded-lg hover:bg-[#a9bb9d]/10 text-[#999] hover:text-[#1a1a1a] transition-all cursor-pointer"
+                        >
+                            <IconX className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+                {/* Drawer body */}
+                <div className="flex-1 overflow-auto">
+                    <pre className="p-5 text-xs font-mono text-[#555] leading-relaxed whitespace-pre-wrap break-words">
+                        {JSON.stringify(data, null, 2)}
+                    </pre>
                 </div>
             </div>
         </div>

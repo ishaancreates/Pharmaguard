@@ -31,6 +31,7 @@ import {
   isCriticalRisk,
   isSafe,
 } from "@/utils/pillScannerUtils";
+import NavBar from "@/components/NavBar";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SCAN_INTERVAL_MS = 800;
@@ -523,7 +524,8 @@ export default function PillScannerPage() {
       )}
 
       {/* ── Page Header ─────────────────────────────────────────────────── */}
-      <header className="border-b border-[#a9bb9d]/20 bg-white/95 backdrop-blur-sm sticky top-0 z-40">
+      <NavBar />
+      <div className="border-b border-[#a9bb9d]/20 bg-white/95 backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#0b1e40] flex items-center justify-center shadow-lg shadow-[#0b1e40]/20">
@@ -575,16 +577,14 @@ export default function PillScannerPage() {
 
             {/* VCF status badge */}
             <div
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                vcfLoaded
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${vcfLoaded
                   ? "bg-emerald-50 border-emerald-200 text-emerald-700"
                   : "bg-amber-50 border-amber-200 text-amber-700"
-              }`}
+                }`}
             >
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  vcfLoaded ? "bg-emerald-500" : "bg-amber-500"
-                }`}
+                className={`w-1.5 h-1.5 rounded-full ${vcfLoaded ? "bg-emerald-500" : "bg-amber-500"
+                  }`}
               />
               {vcfLoaded
                 ? `VCF · ${patientVariants.length} variants`
@@ -592,7 +592,7 @@ export default function PillScannerPage() {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
         {/* ── VCF Warning ─────────────────────────────────────────────────── */}
@@ -652,9 +652,8 @@ export default function PillScannerPage() {
                     <div
                       className="relative w-3/4 h-1/2 rounded-xl"
                       style={{
-                        border: `2px solid ${
-                          hasResult && signal ? signal.color : "#ffffff"
-                        }`,
+                        border: `2px solid ${hasResult && signal ? signal.color : "#ffffff"
+                          }`,
                         boxShadow:
                           hasResult && signal
                             ? `0 0 24px ${signal.color}60, inset 0 0 24px ${signal.color}10`
@@ -950,11 +949,10 @@ export default function PillScannerPage() {
 
                   <button
                     onClick={toggleTorch}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border cursor-pointer ${
-                      torchOn
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border cursor-pointer ${torchOn
                         ? "bg-amber-50 border-amber-300 text-amber-700"
                         : "border-neutral-200 hover:border-neutral-300 text-neutral-600"
-                    }`}
+                      }`}
                   >
                     <span>{torchOn ? "🔦" : "💡"}</span>
                     {torchOn ? "On" : "Torch"}
@@ -1009,72 +1007,72 @@ export default function PillScannerPage() {
                   {/* Genes affected */}
                   {assessment.pharmacogenomic_profile.genes_involved.length >
                     0 && (
-                    <div className="px-5 py-3.5">
-                      <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-                        Pharmacogenes
-                      </p>
-                      <div className="flex gap-1.5 flex-wrap">
-                        {assessment.pharmacogenomic_profile.genes_involved.map(
-                          (g) => (
-                            <span
-                              key={g}
-                              className="px-2.5 py-1 bg-[#0b1e40]/8 text-[#0b1e40] rounded-lg text-xs font-mono font-bold"
-                            >
-                              {g}
-                            </span>
-                          ),
-                        )}
+                      <div className="px-5 py-3.5">
+                        <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                          Pharmacogenes
+                        </p>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {assessment.pharmacogenomic_profile.genes_involved.map(
+                            (g) => (
+                              <span
+                                key={g}
+                                className="px-2.5 py-1 bg-[#0b1e40]/8 text-[#0b1e40] rounded-lg text-xs font-mono font-bold"
+                              >
+                                {g}
+                              </span>
+                            ),
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Detected risk variants */}
                   {assessment.pharmacogenomic_profile.variant_hits.length >
                     0 && (
-                    <div className="px-5 py-3.5">
-                      <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-                        Detected Risk Variants
-                      </p>
-                      <div className="space-y-1.5">
-                        {assessment.pharmacogenomic_profile.variant_hits.map(
-                          (hit, i) => (
-                            <div
-                              key={i}
-                              className="flex items-center gap-2 p-2 rounded-lg"
-                              style={{
-                                backgroundColor: `${signal?.color}08`,
-                              }}
-                            >
-                              <span
-                                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: signal?.color }}
-                              />
-                              <span className="font-mono text-sm font-medium text-neutral-800">
-                                {hit.gene}
-                              </span>
-                              <span className="text-neutral-300">·</span>
-                              <span
-                                className="font-mono text-sm"
+                      <div className="px-5 py-3.5">
+                        <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                          Detected Risk Variants
+                        </p>
+                        <div className="space-y-1.5">
+                          {assessment.pharmacogenomic_profile.variant_hits.map(
+                            (hit, i) => (
+                              <div
+                                key={i}
+                                className="flex items-center gap-2 p-2 rounded-lg"
                                 style={{
-                                  color:
-                                    signal?.color === "#00e676"
-                                      ? "#059669"
-                                      : signal?.color,
+                                  backgroundColor: `${signal?.color}08`,
                                 }}
                               >
-                                {hit.matchedAlleles.join(", ")}
-                              </span>
-                              {hit.rsids.length > 0 && (
-                                <span className="text-xs text-neutral-400 ml-auto font-mono">
-                                  {hit.rsids.join(", ")}
+                                <span
+                                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: signal?.color }}
+                                />
+                                <span className="font-mono text-sm font-medium text-neutral-800">
+                                  {hit.gene}
                                 </span>
-                              )}
-                            </div>
-                          ),
-                        )}
+                                <span className="text-neutral-300">·</span>
+                                <span
+                                  className="font-mono text-sm"
+                                  style={{
+                                    color:
+                                      signal?.color === "#00e676"
+                                        ? "#059669"
+                                        : signal?.color,
+                                  }}
+                                >
+                                  {hit.matchedAlleles.join(", ")}
+                                </span>
+                                {hit.rsids.length > 0 && (
+                                  <span className="text-xs text-neutral-400 ml-auto font-mono">
+                                    {hit.rsids.join(", ")}
+                                  </span>
+                                )}
+                              </div>
+                            ),
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Mechanism */}
                   <div className="px-5 py-3.5">
@@ -1219,14 +1217,14 @@ export default function PillScannerPage() {
                       sessionStats.warning -
                       sessionStats.danger >
                       0 && (
-                      <div
-                        className="h-1.5 rounded-full bg-neutral-300 transition-all duration-500"
-                        style={{
-                          width: `${((sessionStats.total - sessionStats.safe - sessionStats.warning - sessionStats.danger) / sessionStats.total) * 100}%`,
-                          minWidth: "8px",
-                        }}
-                      />
-                    )}
+                        <div
+                          className="h-1.5 rounded-full bg-neutral-300 transition-all duration-500"
+                          style={{
+                            width: `${((sessionStats.total - sessionStats.safe - sessionStats.warning - sessionStats.danger) / sessionStats.total) * 100}%`,
+                            minWidth: "8px",
+                          }}
+                        />
+                      )}
                   </div>
                 )}
               </div>
@@ -1604,15 +1602,15 @@ export default function PillScannerPage() {
                         sessionStats.warning -
                         sessionStats.danger >
                         0 && (
-                        <span className="flex items-center gap-1 text-neutral-500">
-                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
-                          {sessionStats.total -
-                            sessionStats.safe -
-                            sessionStats.warning -
-                            sessionStats.danger}{" "}
-                          Other
-                        </span>
-                      )}
+                          <span className="flex items-center gap-1 text-neutral-500">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
+                            {sessionStats.total -
+                              sessionStats.safe -
+                              sessionStats.warning -
+                              sessionStats.danger}{" "}
+                            Other
+                          </span>
+                        )}
                     </div>
                   </div>
                 </div>

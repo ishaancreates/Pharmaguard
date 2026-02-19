@@ -10,6 +10,7 @@ import {
   IconWallet,
   IconCheck,
   IconAlertTriangle,
+  IconUserCircle,
 } from "@tabler/icons-react";
 
 const ROLES = {
@@ -35,7 +36,7 @@ const ROLES = {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { connectWallet, login } = useAuth();
+  const { connectWallet, login, loginAsGuest } = useAuth();
   const [selectedRole, setSelectedRole] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -62,6 +63,11 @@ export default function LoginPage() {
       }
     }
     setLoading(false);
+  };
+
+  const handleGuestLogin = () => {
+    loginAsGuest(selectedRole || "patient");
+    router.push("/");
   };
 
   return (
@@ -160,6 +166,20 @@ export default function LoginPage() {
 
               <div className="flex items-center gap-3 my-8">
                 <div className="flex-1 h-px bg-[#a9bb9d]/10" />
+                <span className="text-[10px] text-[#ccc] font-semibold uppercase tracking-wider">Or</span>
+                <div className="flex-1 h-px bg-[#a9bb9d]/10" />
+              </div>
+
+              <button
+                onClick={handleGuestLogin}
+                className="w-full py-3 rounded-xl border border-[#a9bb9d]/25 text-sm font-semibold text-[#777] hover:bg-[#f6f9f4] hover:text-[#555] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <IconUserCircle className="w-4 h-4" />
+                Continue as Guest
+              </button>
+
+              <div className="flex items-center gap-3 my-8">
+                <div className="flex-1 h-px bg-[#a9bb9d]/10" />
                 <span className="text-[10px] text-[#ccc] font-semibold uppercase tracking-wider">New here?</span>
                 <div className="flex-1 h-px bg-[#a9bb9d]/10" />
               </div>
@@ -243,6 +263,20 @@ export default function LoginPage() {
                     Connect Pera Wallet
                   </>
                 )}
+              </button>
+
+              <div className="flex items-center gap-3 my-5">
+                <div className="flex-1 h-px bg-[#a9bb9d]/10" />
+                <span className="text-[10px] text-[#ccc] font-semibold uppercase tracking-wider">Or</span>
+                <div className="flex-1 h-px bg-[#a9bb9d]/10" />
+              </div>
+
+              <button
+                onClick={handleGuestLogin}
+                className="w-full py-3 rounded-xl border border-[#a9bb9d]/25 text-sm font-semibold text-[#777] hover:bg-[#f6f9f4] hover:text-[#555] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <IconUserCircle className="w-4 h-4" />
+                Continue as Guest
               </button>
 
               <p className="text-center text-xs text-[#ccc] mt-6">

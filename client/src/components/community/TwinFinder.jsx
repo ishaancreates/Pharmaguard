@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { IconDna, IconUser } from "@tabler/icons-react";
 
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function TwinFinder({ profile }) {
   const router = useRouter();
   const [matches, setMatches] = useState([]);
@@ -17,7 +19,7 @@ export default function TwinFinder({ profile }) {
   const findTwins = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/find-twins", {
+      const res = await fetch(`${API}/api/find-twins`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profile }),

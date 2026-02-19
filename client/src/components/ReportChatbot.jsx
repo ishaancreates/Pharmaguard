@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Sparkles, ChevronDown, Loader2, Bot, User } from 'lucide-react';
 
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 const QUICK_QUESTIONS = [
     "What does this report mean overall?",
     "What is a Normal Metabolizer?",
@@ -55,7 +57,7 @@ export default function ReportChatbot({ reportContext }) {
         setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:5000/api/report-chat', {
+            const res = await fetch(`${API}/api/report-chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

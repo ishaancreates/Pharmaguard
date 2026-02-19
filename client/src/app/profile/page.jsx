@@ -199,10 +199,10 @@ export default function ProfilePage() {
                         </div>
                         <div className="sm:col-span-2">
                             <p className="text-[11px] uppercase tracking-wider text-[#bbb] font-semibold mb-1">
-                                Wallet Address
+                                {user?.isGuest ? "Session ID" : "Wallet Address"}
                             </p>
                             <p className="text-sm font-mono text-[#6b8760] bg-[#a9bb9d]/5 px-3 py-2 rounded-lg border border-[#a9bb9d]/10 break-all">
-                                {walletAddress || "—"}
+                                {user?.isGuest ? "Guest Session (local only)" : (walletAddress || "—")}
                             </p>
                         </div>
                     </div>

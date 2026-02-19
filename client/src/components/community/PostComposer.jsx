@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { IconSend, IconPill, IconDna, IconX } from "@tabler/icons-react";
 
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function PostComposer({ onPostCreated }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -15,7 +17,7 @@ export default function PostComposer({ onPostCreated }) {
     if (!title.trim() || !content.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/community/post", {
+      const res = await fetch(`${API}/api/community/post`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: 1, title, content, drug, gene }),

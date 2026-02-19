@@ -57,17 +57,6 @@ export function AuthProvider({ children }) {
         }
     }, []);
 
-    // ── Disconnect wallet ──
-    const disconnectWallet = useCallback(async () => {
-        const pera = getPeraWallet();
-        if (pera) {
-            try { await pera.disconnect(); } catch { /* ok */ }
-        }
-        setWalletAddress(null);
-        setUser(null);
-        localStorage.removeItem("pg_user");
-    }, []);
-
     // ── Register (signup) — wallet + role + name → backend ──
     const signup = useCallback(async (address, role, fullName) => {
         const res = await fetch(`${API}/api/auth/signup`, {
@@ -100,8 +89,41 @@ export function AuthProvider({ children }) {
         return userData;
     }, []);
 
+    // ── Guest login — no wallet, purely local session ──
+    const loginAsGuest = useCallback((role, fullName) => {
+        const stored = localStorage.getItem("pg_guest_token");
+        const guestToken = stored || `guest_${crypto.randomUUID()}`;
+        if (!stored) localStorage.setItem("pg_guest_token", guestToken);
+
+        const userData = {
+            wallet_address: guestToken,
+            role: role || "patient",
+            fullName: fullName || "Guest User",
+            isGuest: true,
+        };
+        setUser(userData);
+        setWalletAddress(guestToken);
+        localStorage.setItem("pg_user", JSON.stringify(userData));
+        return userData;
+    }, []);
+
+    // ── Disconnect / logout ── (extended to clean up guest token)
+    const logout = useCallback(async () => {
+        const wasGuest = user?.isGuest;
+        const pera = getPeraWallet();
+        if (!wasGuest && pera) {
+            try { await pera.disconnect(); } catch { /* ok */ }
+        }
+        setWalletAddress(null);
+        setUser(null);
+        localStorage.removeItem("pg_user");
+        if (wasGuest) localStorage.removeItem("pg_guest_token");
+    }, [user]);
+
     const shortAddress = walletAddress
-        ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
+        ? user?.isGuest
+            ? "Guest"
+            : `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
         : null;
 
     return (
@@ -113,7 +135,8 @@ export function AuthProvider({ children }) {
                 loading,
                 isAuthenticated: !!user,
                 connectWallet,
-                disconnectWallet,
+                disconnectWallet: logout,
+                loginAsGuest,
                 signup,
                 login,
             }}
