@@ -609,74 +609,7 @@ export default function PillScannerPage() {
 
       {/* ── Page Header ─────────────────────────────────────────────────── */}
       <NavBar />
-      <div className="border-b border-[#a9bb9d]/20 bg-white/95 backdrop-blur-sm sticky top-0 z-30">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#0b1e40] flex items-center justify-center shadow-lg shadow-[#0b1e40]/20">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="w-4.5 h-4.5 text-white"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-base font-bold text-neutral-900 tracking-tight font-heading">
-                Pill Scanner
-              </h1>
-              <p className="text-[11px] text-neutral-400 -mt-0.5 font-medium">
-                Real-time pharmacogenomic safety check
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Session stats mini badges */}
-            {sessionStats.total > 0 && (
-              <div className="hidden sm:flex items-center gap-1.5 mr-2">
-                <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mr-1">
-                  Session
-                </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  {sessionStats.safe}
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                  {sessionStats.warning}
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">
-                  {sessionStats.danger}
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                </span>
-              </div>
-            )}
-
-            {/* VCF status badge */}
-            <div
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${vcfLoaded
-                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                : "bg-amber-50 border-amber-200 text-amber-700"
-                }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${vcfLoaded ? "bg-emerald-500" : "bg-amber-500"
-                  }`}
-              />
-              {vcfLoaded
-                ? `VCF · ${patientVariants.length} variants`
-                : "No VCF loaded"}
-            </div>
-          </div>
-        </div>
-      </div>
+     
 
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
         {/* ── VCF upload / status ────────────────────────────────────── */}
