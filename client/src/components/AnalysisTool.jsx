@@ -1,24 +1,23 @@
 "use client";
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import FileUpload from "./FileUpload";
 import DrugInput from "./DrugInput";
-import ResultsDisplay from "./ResultsDisplay";
 import { validateVCFFile, validateVCFContent } from "@/utils/vcfValidator";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function AnalysisTool() {
+  const router = useRouter();
   const [file, setFile] = useState(null);
   const [drugs, setDrugs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [fileError, setFileError] = useState(null);
 
   // ── File handling ────────────────────────────────────────────────────────────
   const handleFileSelect = useCallback(async (selectedFile) => {
     setFileError(null);
-    setResults(null);
     setError(null);
 
     // 1. Validate size + extension
@@ -47,7 +46,6 @@ export default function AnalysisTool() {
   const handleClearFile = useCallback(() => {
     setFile(null);
     setFileError(null);
-    setResults(null);
     setError(null);
   }, []);
 
@@ -64,7 +62,6 @@ export default function AnalysisTool() {
 
     setLoading(true);
     setError(null);
-    setResults(null);
 
     try {
       const formData = new FormData();
@@ -88,20 +85,15 @@ export default function AnalysisTool() {
       }
 
       const data = await response.json();
-      setResults(data);
 
-      // Scroll to results
-      setTimeout(() => {
-        document.getElementById("results-section")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 100);
+      // Store results and navigate to results page
+      sessionStorage.setItem("pharmaguard_results", JSON.stringify(data));
+      router.push("/results");
     } catch (err) {
       if (err instanceof TypeError && err.message.includes("fetch")) {
         setError(
           "Unable to reach the analysis server. Please ensure the backend is running at " +
-            BACKEND_URL,
+          BACKEND_URL,
         );
       } else {
         setError(
@@ -205,12 +197,6 @@ export default function AnalysisTool() {
           </div>
         </div>
 
-        {/* ── Results ── */}
-        {results && (
-          <div id="results-section">
-            <ResultsDisplay results={results} />
-          </div>
-        )}
       </div>
     </section>
   );
