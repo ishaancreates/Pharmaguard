@@ -10,7 +10,7 @@ export default function HeroSection() {
       {/* ── Pills — bottom-left ── */}
       <div className="absolute bottom-0 left-0 w-200 h-auto   select-none pointer-events-none">
         <Image
-          src="/pills.png"
+          src="/pills.svg"
           alt="Pharmaceutical capsules"
           width={400}
           height={320}
