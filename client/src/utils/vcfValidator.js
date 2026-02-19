@@ -20,7 +20,7 @@ export function validateVCFFile(file) {
 
   if (file.size === 0) {
     return {
-valid: false,
+      valid: false,
       error: "The file is empty. Please upload a valid VCF file.",
     };
   }
@@ -94,7 +94,7 @@ export async function parseVCFFile(file) {
     const parts = line.split("\t");
     if (parts.length < 8) continue;
 
-    const [chrom, pos, id, ref, alt, qual, filter, infoStr] = parts;
+    const [chrom, pos, id, ref, alt, qual, filter, infoStr, format, ...sampleCols] = parts;
 
     // Parse INFO key=value pairs
     const infoMap = {};
@@ -109,6 +109,17 @@ export async function parseVCFFile(file) {
       }
     });
 
+    // Extract genotype (GT) from the first sample column
+    let genotype = null;
+    if (format && sampleCols.length > 0) {
+      const formatFields = format.split(":");
+      const sampleFields = sampleCols[0].split(":");
+      const gtIdx = formatFields.indexOf("GT");
+      if (gtIdx >= 0 && gtIdx < sampleFields.length) {
+        genotype = sampleFields[gtIdx];
+      }
+    }
+
     variants.push({
       chrom,
       pos,
@@ -118,6 +129,7 @@ export async function parseVCFFile(file) {
       gene: infoMap.GENE || null,
       star: infoMap.STAR || null,
       rs: infoMap.RS || (id !== "." ? id : null),
+      genotype,
       info: infoMap,
     });
   }

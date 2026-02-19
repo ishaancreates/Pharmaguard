@@ -594,6 +594,11 @@ export function checkVariantMatch(detectedVariants, riskAlleles) {
     const rsids = [];
 
     for (const variant of geneVariants) {
+      // Skip variants with 0/0 (homozygous reference) genotype — patient
+      // does NOT carry this allele even though the VCF lists it as a locus
+      const gt = variant.genotype || variant.gt;
+      if (gt && (gt === "0/0" || gt === "0|0")) continue;
+
       // Match by star allele (e.g., *4)
       const starAllele =
         variant.star_allele ||
@@ -605,7 +610,7 @@ export function checkVariantMatch(detectedVariants, riskAlleles) {
         alleleList.some((a) => a.toLowerCase() === starAllele.toLowerCase())
       ) {
         matched.push(starAllele);
-        if (variant.rsid) rsids.push(variant.rsid);
+        if (variant.rsid || variant.rs) rsids.push(variant.rsid || variant.rs);
         continue;
       }
       // Match by rsID directly
@@ -625,7 +630,7 @@ export function checkVariantMatch(detectedVariants, riskAlleles) {
         alleleList.some((a) => a.toLowerCase() === change.toLowerCase())
       ) {
         matched.push(change);
-        if (variant.rsid) rsids.push(variant.rsid);
+        if (variant.rsid || variant.rs) rsids.push(variant.rsid || variant.rs);
       }
     }
 
