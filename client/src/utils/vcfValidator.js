@@ -20,7 +20,7 @@ export function validateVCFFile(file) {
 
   if (file.size === 0) {
     return {
-      valid: false,
+valid: false,
       error: "The file is empty. Please upload a valid VCF file.",
     };
   }
@@ -136,3 +136,7 @@ export function summarizeVCF(variants) {
     hasPharmacogenomicData: genes.length > 0,
   };
 }
+
+
+
+

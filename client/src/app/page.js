@@ -4,6 +4,7 @@ import HowItWorks from "@/components/HowItWorks";
 import AnalysisTool from "@/components/AnalysisTool";
 import SupportedGenesDrugs from "@/components/SupportedGenesDrugs";
 import Footer from "@/components/Footer";
+import ContactSection from "@/components/ContactSection";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <HowItWorks />
       <AnalysisTool />
       <SupportedGenesDrugs />
+      <ContactSection />
       <Footer />
     </main>
   );
