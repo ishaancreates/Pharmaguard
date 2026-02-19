@@ -30,6 +30,7 @@ from pgx_knowledgebase import (
     INEFFECTIVE,
     UNKNOWN,
     DrugGeneInteraction,
+    build_diplotype,
     get_genes_for_drug,
     infer_phenotype,
     lookup_interaction,
@@ -349,12 +350,16 @@ def _generate_llm_explanation(
     Call an OpenAI-compatible API to generate a rich clinical explanation.
     Returns None if no API key is set or the call fails.
     """
-    api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("LLM_API_KEY")
+    api_key = (
+        os.environ.get("GROQ_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or os.environ.get("LLM_API_KEY")
+    )
     if not api_key:
         return None
 
-    base_url = os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1")
-    model = os.environ.get("LLM_MODEL", "gpt-4o-mini")
+    base_url = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    model = os.environ.get("LLM_MODEL", "llama-3.3-70b-versatile")
 
     variant_details = []
     for v in variants:
@@ -408,13 +413,16 @@ def _generate_llm_explanation(
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}",
+                "User-Agent": "Pharmaguard/1.0",
             },
             method="POST",
         )
 
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            return data["choices"][0]["message"]["content"].strip()
+            content = data["choices"][0]["message"]["content"].strip()
+            print(f"[LLM] ✓ Generated explanation for {drug} ({model}, {len(content)} chars)")
+            return content
 
     except Exception as e:
         print(f"[LLM] Explanation generation failed: {e}")
@@ -511,12 +519,12 @@ def analyze(vcf: VCFFile, drugs: List[str], sample: Optional[str] = None) -> Ana
 
             interaction = lookup_interaction(drug_clean, gene, phenotype)
 
-            # Build diplotype string from detected alleles
-            variant_alleles = [v.star_allele for v in gene_vars if v.is_variant and v.star_allele]
-            if variant_alleles:
-                diplotype = f"*1/{variant_alleles[0]}" if len(variant_alleles) == 1 else f"{variant_alleles[0]}/{variant_alleles[1]}"
-            else:
-                diplotype = "*1/*1"
+            # Build diplotype string using the knowledge base function
+            allele_info_for_diplo = [
+                {"star_allele": v.star_allele, "genotype": v.genotype}
+                for v in gene_vars if v.is_variant and v.star_allele
+            ]
+            diplotype = build_diplotype(gene, allele_info_for_diplo)
 
             if interaction:
                 # Try LLM explanation first, fall back to template

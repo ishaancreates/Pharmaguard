@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
+import cpic_tables
+
 # ---------------------------------------------------------------------------
 # Risk levels
 # ---------------------------------------------------------------------------
@@ -32,21 +34,9 @@ INDETERMINATE = "Indeterminate"
 # ---------------------------------------------------------------------------
 # Star-allele → function mapping
 # ---------------------------------------------------------------------------
-# Function categories:  "normal", "decreased", "no_function", "increased"
-ALLELE_FUNCTION: Dict[str, Dict[str, str]] = {
-    "CYP2D6": {
-        "*1":  "normal",
-        "*2":  "normal",
-        "*3":  "no_function",
-        "*4":  "no_function",
-        "*5":  "no_function",
-        "*6":  "no_function",
-        "*9":  "decreased",
-        "*10": "decreased",
-        "*17": "decreased",
-        "*29": "decreased",
-        "*41": "decreased",
-    },
+# For genes with CPIC Excel tables → loaded from cpic_tables (auto-discovered)
+# For genes without tables → hardcoded fallback
+_HARDCODED_ALLELE_FUNCTION: Dict[str, Dict[str, str]] = {
     "CYP2C19": {
         "*1":  "normal",
         "*2":  "no_function",
@@ -57,7 +47,7 @@ ALLELE_FUNCTION: Dict[str, Dict[str, str]] = {
     "CYP2C9": {
         "*1":  "normal",
         "*2":  "decreased",
-        "*3":  "no_function",
+        "*3":  "decreased",       # CPIC classifies *3 as decreased, not no_function
         "*5":  "decreased",
         "*6":  "no_function",
         "*8":  "decreased",
@@ -85,15 +75,17 @@ ALLELE_FUNCTION: Dict[str, Dict[str, str]] = {
     },
 }
 
+# Build the merged dict: CPIC tables override hardcoded entries
+ALLELE_FUNCTION: Dict[str, Dict[str, str]] = {}
+for _gene in set(list(_HARDCODED_ALLELE_FUNCTION.keys()) + cpic_tables.loaded_genes()):
+    if cpic_tables.has_gene(_gene):
+        ALLELE_FUNCTION[_gene] = cpic_tables.build_legacy_allele_function_dict(_gene)
+    elif _gene in _HARDCODED_ALLELE_FUNCTION:
+        ALLELE_FUNCTION[_gene] = _HARDCODED_ALLELE_FUNCTION[_gene]
+
 # rsID → (gene, star-allele) lookup for VCFs that lack GENE/STAR INFO tags
-RSID_TO_ALLELE: Dict[str, Tuple[str, str]] = {
-    # CYP2D6
-    "rs3892097":  ("CYP2D6", "*4"),
-    "rs5030655":  ("CYP2D6", "*6"),
-    "rs1065852":  ("CYP2D6", "*10"),
-    "rs28371706": ("CYP2D6", "*17"),
-    "rs16947":    ("CYP2D6", "*2"),
-    "rs28371725": ("CYP2D6", "*41"),
+# Auto-filled from CPIC tables for all loaded genes, plus hardcoded fallbacks
+_HARDCODED_RSIDS: Dict[str, Tuple[str, str]] = {
     # CYP2C19
     "rs4244285":  ("CYP2C19", "*2"),
     "rs4986893":  ("CYP2C19", "*3"),
@@ -113,12 +105,55 @@ RSID_TO_ALLELE: Dict[str, Tuple[str, str]] = {
     "rs67376798": ("DPYD", "c.2846A>T"),
 }
 
+# Merge: CPIC tables first (higher quality), hardcoded only if rsID not already covered
+RSID_TO_ALLELE: Dict[str, Tuple[str, str]] = {}
+for _gene in cpic_tables.loaded_genes():
+    RSID_TO_ALLELE.update(cpic_tables.build_legacy_rsid_to_allele_dict(_gene))
+for _rsid, _val in _HARDCODED_RSIDS.items():
+    if _rsid not in RSID_TO_ALLELE:
+        RSID_TO_ALLELE[_rsid] = _val
+
 # ---------------------------------------------------------------------------
 # Phenotype inference
 # ---------------------------------------------------------------------------
 
 def _function_score(func: str) -> float:
     return {"normal": 1.0, "decreased": 0.5, "no_function": 0.0, "increased": 1.5}.get(func, 1.0)
+
+
+def build_diplotype(gene: str, detected_alleles: List[dict]) -> str:
+    """
+    Build a diplotype string (e.g. '*1/*4') from detected variant alleles.
+    Assumes diploid.  Variant alleles contribute one copy each (het) or
+    both copies (hom).  Remaining copies are filled with *1 (wild-type).
+    """
+    copies: List[str] = []
+    for a in detected_alleles:
+        star = a.get("star_allele", "")
+        gt = a.get("genotype", "0/0")
+        if not star:
+            continue
+        if gt in ("1/1", "1|1"):
+            copies.extend([star, star])
+        elif gt in ("0/1", "0|1", "1|0", "1/0"):
+            copies.append(star)
+
+    # Fill remaining with wild-type
+    while len(copies) < 2:
+        copies.append("*1")
+
+    # Take the first two (most impactful)
+    copies = copies[:2]
+    # Canonical order: lower allele number first
+    def _sort_key(s: str) -> float:
+        n = s.lstrip("*").split("x")[0]
+        n = n.replace("A", ".1").replace("B", ".2").replace("C", ".3")
+        try:
+            return float(n)
+        except ValueError:
+            return 999.0
+    copies.sort(key=_sort_key)
+    return f"{copies[0]}/{copies[1]}"
 
 
 def infer_phenotype(gene: str, detected_alleles: List[dict]) -> str:
@@ -128,35 +163,47 @@ def infer_phenotype(gene: str, detected_alleles: List[dict]) -> str:
     Each item in *detected_alleles* should have keys:
       - star_allele: str   (e.g. "*4")
       - genotype: str      (e.g. "0/1" or "1/1")
-    
-    We compute an activity score from the two allele copies.
+
+    For CYP2D6: first attempts an exact diplotype lookup in the official
+    CPIC Diplotype-Phenotype Table (16,836 entries).  Falls back to
+    activity-score heuristic if the diplotype is not found.
+
+    For other genes: uses the activity-score heuristic.
     """
+    # ── Try official CPIC diplotype table first (for any loaded gene) ──
+    if cpic_tables.has_gene(gene):
+        diplotype = build_diplotype(gene, detected_alleles)
+        cpic_pheno = cpic_tables.infer_phenotype_from_diplotype(gene, diplotype)
+        if cpic_pheno:
+            return cpic_pheno
+        # If not found (rare combo), fall through to heuristic
+
+    # ── Heuristic: activity-score based ──
     gene_funcs = ALLELE_FUNCTION.get(gene, {})
-    
-    # Collect functional impacts — we assume diploid
+
     scores: List[float] = []
     for a in detected_alleles:
         star = a.get("star_allele", "")
         gt = a.get("genotype", "0/0")
-        func = gene_funcs.get(star, "normal")
-        
+
+        # For genes with CPIC tables, use official activity values
+        if cpic_tables.has_gene(gene) and star:
+            av = cpic_tables.get_activity_value(gene, star)
+        else:
+            func = gene_funcs.get(star, "normal")
+            av = _function_score(func)
+
         if gt in ("1/1", "1|1"):
-            # Homozygous variant — both copies affected
-            scores.extend([_function_score(func), _function_score(func)])
+            scores.extend([av, av])
         elif gt in ("0/1", "0|1", "1|0", "1/0"):
-            # Heterozygous — one copy affected, one normal
-            scores.extend([_function_score(func)])
-        # 0/0 means ref-homozygous — allele not actually present
+            scores.append(av)
 
-    # If no variant alleles detected, both copies are wild-type (*1/*1)
     if not scores:
-        return EXTENSIVE  # Normal metabolizer
+        return EXTENSIVE  # no variants → Normal Metabolizer
 
-    # Fill remaining copies with normal function (assuming diploid)
     while len(scores) < 2:
         scores.append(1.0)  # wild-type copy
-    
-    # Take the two lowest scores (worst case for diploid)
+
     scores.sort()
     total = scores[0] + scores[1]
 

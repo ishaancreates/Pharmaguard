@@ -26,60 +26,78 @@ export default function Feed({ refreshTrigger }) {
         return (
             <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm animate-pulse">
-                        <div className="h-4 bg-gray-100 rounded w-3/4 mb-4" />
-                        <div className="h-20 bg-gray-50 rounded mb-4" />
-                        <div className="h-3 bg-gray-100 rounded w-1/4" />
-                    </div>
+                    <div key={i} className="bg-white rounded-md p-4 border border-gray-200 shadow-sm animate-pulse h-32" />
                 ))}
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             {posts.map((post) => (
-                <div key={post.id} className="bg-white border border-[#dde8f4] hover:border-[#a9bb9d]/30 rounded-2xl p-6 shadow-sm transition-all duration-200">
-                    <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2 text-xs text-[#94a3b8]">
-                            <span className="font-semibold text-[#0b1e40]">{post.username}</span>
-                            <span>•</span>
-                            <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                        </div>
-                        {(post.gene || post.drug) && (
-                            <div className="flex gap-2">
-                                {post.gene && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 text-[10px] font-bold border border-purple-100">
-                                        <IconDna className="w-3 h-3" /> {post.gene}
-                                    </span>
-                                )}
-                                {post.drug && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100">
-                                        <IconPill className="w-3 h-3" /> {post.drug}
-                                    </span>
-                                )}
-                            </div>
-                        )}
+                <div key={post.id} className="group bg-white border border-[#dde8f4] hover:border-[#898989] cursor-pointer rounded-md overflow-hidden flex transition-colors duration-200">
+                    {/* Vote Column */}
+                    <div className="w-10 bg-[#f8f9fa] border-r border-[#dde8f4] flex flex-col items-center py-3 gap-1">
+                        <button className="text-[#878a8c] hover:text-[#cc3700] p-1 hover:bg-[#cc3700]/10 rounded">
+                            <IconArrowUp className="w-6 h-6" />
+                        </button>
+                        <span className="text-xs font-bold text-[#1a1a1b]">{post.upvotes}</span>
+                        <button className="text-[#878a8c] hover:text-[#7193ff] p-1 hover:bg-[#7193ff]/10 rounded">
+                            <IconArrowUp className="w-6 h-6 rotate-180" />
+                        </button>
                     </div>
 
-                    <h4 className="text-[#0b1e40] font-bold text-base mb-2">{post.title}</h4>
-                    <p className="text-[#4b5b7b] text-sm leading-relaxed mb-4">{post.content}</p>
+                    {/* Content */}
+                    <div className="flex-1 p-2 bg-white">
+                        {/* Header */}
+                        <div className="flex items-center gap-2 text-xs text-[#787c7e] mb-2 px-1">
+                            {post.gene && (
+                                <span className="font-bold text-[#0b1e40] bg-slate-100 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                    <IconDna className="w-3 h-3" /> p/{post.gene}
+                                </span>
+                            )}
+                            <span>•</span>
+                            <span className="hover:underline">Posted by u/{post.username}</span>
+                            <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                        </div>
 
-                    <div className="flex items-center gap-4 border-t border-[#f1f5f9] pt-3">
-                        <button className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b] hover:text-[#a9bb9d] transition-colors">
-                            <IconArrowUp className="w-4 h-4" />
-                            {post.upvotes}
-                        </button>
-                        <button className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b] hover:text-[#0b1e40] transition-colors">
-                            <IconMessageCircle className="w-4 h-4" />
-                            {post.comments_count} Comments
-                        </button>
+                        {/* Body */}
+                        <div className="px-1 mb-2">
+                            <h3 className="text-lg font-medium text-[#222222] mb-1 group-hover:underline decoration-1 underline-offset-2">
+                                {post.title}
+                            </h3>
+                            <div className="text-sm text-[#1a1a1b] line-clamp-3 leading-snug">
+                                {post.content}
+                            </div>
+
+                            {post.drug && (
+                                <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100">
+                                    <IconPill className="w-3 h-3" /> {post.drug}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Footer / Actions */}
+                        <div className="flex items-center gap-1 text-[#878a8c] text-xs font-bold">
+                            <button className="flex items-center gap-1.5 hover:bg-[#e8e8e8] px-2 py-1.5 rounded">
+                                <IconMessageCircle className="w-5 h-5" />
+                                {post.comments_count} Comments
+                            </button>
+                            <button className="flex items-center gap-1.5 hover:bg-[#e8e8e8] px-2 py-1.5 rounded">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 9h8" /><path d="M8 13h6" /><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z" /></svg>
+                                Share
+                            </button>
+                            <button className="flex items-center gap-1.5 hover:bg-[#e8e8e8] px-2 py-1.5 rounded">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855" /></svg>
+                                Save
+                            </button>
+                        </div>
                     </div>
                 </div>
             ))}
 
             {posts.length === 0 && (
-                <div className="text-center py-12">
+                <div className="text-center py-12 bg-white border border-[#dde8f4] rounded-md">
                     <p className="text-[#94a3b8]">No posts yet. Be the first to share!</p>
                 </div>
             )}

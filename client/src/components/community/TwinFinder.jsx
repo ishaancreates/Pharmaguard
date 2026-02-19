@@ -68,13 +68,33 @@ export default function TwinFinder({ profile }) {
                                                 Exact Match
                                             </span>
                                         )}
-                                        <span className="text-[10px] text-[#64748b] bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+                                        <div className="text-[10px] text-[#64748b] bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
                                             {match.shared_genes.length} Shared Genes
-                                        </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <button className="text-xs font-semibold text-[#a9bb9d] hover:text-[#8fa88a] px-3 py-1.5 rounded-lg hover:bg-[#a9bb9d]/10 transition-colors">
+                            <button
+                                onClick={async () => {
+                                    // Start chat and redirect
+                                    try {
+                                        const res = await fetch("http://localhost:5000/api/chat/start", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                target_user_id: match.user_id
+                                            })
+                                        });
+                                        const data = await res.json();
+                                        if (data.conversation_id) {
+                                            window.location.href = `/chat?id=${data.conversation_id}`;
+                                        }
+                                    } catch (err) {
+                                        console.error(err);
+                                    }
+                                }}
+                                className="text-xs font-semibold text-[#a9bb9d] hover:text-[#8fa88a] px-3 py-1.5 rounded-lg hover:bg-[#a9bb9d]/10 transition-colors"
+                            >
                                 Connect
                             </button>
                         </div>
