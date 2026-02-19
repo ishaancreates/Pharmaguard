@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 from bson import ObjectId
+from groq import Groq
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -44,6 +45,92 @@ CORS(app)
 
 # Max upload size: 50 MB
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def summarize_results(results_dict):
+    """
+    Use Groq (using Llama 3) to generate a simple-English summary for patients.
+    """
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        print("Wait, GROQ_API_KEY is missing!")
+        return None
+
+    try:
+        from groq import Groq
+        client = Groq(api_key=api_key)
+        
+        # Phenotype abbreviation map for the prompt
+        pheno_map = {
+            "URM": "Ultra-rapid Metabolizer",
+            "NM": "Normal Metabolizer",
+            "IM": "Intermediate Metabolizer",
+            "PM": "Poor Metabolizer",
+        }
+
+        # Build a complete picture of ALL results for the LLM
+        all_findings = []
+        actionable_count = 0
+        for r in results_dict.get("results", []):
+            pharm_profile = r.get("pharmacogenomic_profile", {})
+            clin_rec = r.get("clinical_recommendation", {})
+            risk = r.get("risk_assessment", {})
+
+            phenotype_code = pharm_profile.get("phenotype", "Unknown")
+            phenotype_full = pheno_map.get(phenotype_code, phenotype_code)
+            drug = r.get("drug", "Unknown Drug")
+            gene = pharm_profile.get("primary_gene", "Unknown")
+            diplotype = pharm_profile.get("diplotype", "")
+            risk_label = risk.get("risk_label", "Unknown")
+            recommendation = clin_rec.get("action", "No recommendation")
+
+            finding = (
+                f"- Drug: {drug} | Gene: {gene} | Diplotype: {diplotype} | "
+                f"Phenotype: {phenotype_full} | Risk: {risk_label} | "
+                f"Recommendation: {recommendation}"
+            )
+            all_findings.append(finding)
+
+            # Count actionable items
+            if risk_label in ("Adjust Dosage", "Toxic", "Ineffective"):
+                actionable_count += 1
+
+        print(f"Debug: Found {len(all_findings)} total findings, {actionable_count} actionable.")
+        print(f"Debug: Findings:\n" + "\n".join(all_findings))
+
+        if not all_findings:
+            all_findings.append("No drug interaction results were generated.")
+
+        prompt = f"""You are a friendly genetic counselor explaining pharmacogenomic test results to a patient.
+
+Here are ALL the findings from the patient's analysis:
+
+{chr(10).join(all_findings)}
+
+IMPORTANT INSTRUCTIONS:
+- {actionable_count} out of {len(all_findings)} drugs require dosage adjustment or have safety concerns.
+- If ANY drug has Risk "Adjust Dosage", "Toxic", or "Ineffective", you MUST mention it clearly.
+- Do NOT say everything is fine if there are actionable findings.
+- Explain in simple language what each finding means for the patient.
+- Start with "Based on your genetic profile..."
+- Keep the response concise (3-4 sentences max).
+"""
+
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=200,
+            temperature=0.5,
+        )
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        print(f"LLM Summary failed: {e}")
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -149,9 +236,31 @@ def analyze_endpoint():
 
     # ── Run analysis ──
     try:
-        result = analyze(vcf, drugs, sample=sample)
-        result._parse_time_ms = parse_time_ms
-        return jsonify(result.to_dict()), 200
+        from analyzer import analyze
+        
+        # Parse the VCF
+        if not tmp_path:
+             # If temporary file not used (was parsing bytes directly)
+             # we might need to recreate logic or handle above better.
+             pass
+
+        # Call the analysis engine
+        # Since 'vcf' object is already parsed above
+        analysis_result = analyze(vcf, drugs, sample=sample)
+        
+        # Convert to dict
+        final_json = analysis_result.to_dict()
+        final_json["_parse_time_ms"] = parse_time_ms
+        
+        # Add LLM Summary
+        try:
+             summary_text = summarize_results(final_json)
+             if summary_text:
+                 final_json["summary"]["llm_explanation"] = summary_text
+        except Exception:
+             pass
+
+        return jsonify(final_json), 200
 
     except Exception as e:
         traceback.print_exc()
