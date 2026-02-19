@@ -431,7 +431,7 @@ export default function PillScannerPage() {
       {/* ── Global flash overlay ────────────────────────────────────────── */}
       {flashActive && (
         <div
-          className="fixed inset-0 z-[9999] pointer-events-none"
+          className="fixed inset-0 z-9999 pointer-events-none"
           style={{
             backgroundColor: signal?.color || "#ff1744",
             opacity: 0.35,
@@ -538,8 +538,8 @@ export default function PillScannerPage() {
             {cameraActive && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                 {/* Dimmed edges */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/40 via-transparent to-black/40" />
+                <div className="absolute inset-0 bg-linear-to-r from-black/30 via-transparent to-black/30" />
 
                 {/* Scan box */}
                 <div
