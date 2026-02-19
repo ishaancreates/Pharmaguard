@@ -304,6 +304,95 @@ def couple_analysis():
         return jsonify({"error": f"Compatibility calculation failed: {str(e)}"}), 500
 
 
+@app.route("/api/report-chat", methods=["POST"])
+def report_chat():
+    """
+    Answers patient questions about their compatibility report using Groq AI.
+    Body: { message: str, report_context: dict }
+    """
+    data = request.get_json()
+    if not data or not data.get("message"):
+        return jsonify({"error": "Missing message"}), 400
+
+    user_message = data["message"]
+    report_context = data.get("report_context", {})
+
+    api_key = (
+        os.environ.get("GROQ_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or os.environ.get("LLM_API_KEY")
+    )
+
+    if not api_key:
+        # Fallback: template-based answer
+        return jsonify({"reply": (
+            "I'm sorry, the AI assistant isn't configured yet. "
+            "Please ask your doctor about your results."
+        )})
+
+    base_url = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    model = os.environ.get("LLM_MODEL", "llama-3.3-70b-versatile")
+
+    # Build a compact report summary for context
+    report_lines = []
+    for gene, info in report_context.items():
+        p1 = info.get("parent1_diplotype", "?")
+        p2 = info.get("parent2_diplotype", "?")
+        risks = info.get("child_risks", [])
+        top = risks[0] if risks else {}
+        report_lines.append(
+            f"- {gene}: Parent 1={p1}, Parent 2={p2}. "
+            f"Most likely child outcome: {top.get('phenotype','Unknown')} "
+            f"({int(top.get('probability',0)*100)}%)"
+        )
+
+    system_prompt = (
+        "You are a friendly, empathetic genetic counselor chatbot embedded in a pharmacogenomics report. "
+        "A patient is looking at their genetic compatibility report and asking questions. "
+        "Your job is to explain things in very simple, warm, non-scary language. "
+        "Avoid jargon — if you must use medical terms, immediately explain them in brackets. "
+        "Keep answers concise (3-5 sentences max), structured, and reassuring. "
+        "Always end with a note to consult their doctor for medical decisions. "
+        "Do NOT make diagnoses or prescribe anything. "
+        "Here is the patient's report context:\n"
+        + "\n".join(report_lines)
+    )
+
+    try:
+        import urllib.request as urlreq
+        request_body = json.dumps({
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+            "temperature": 0.6,
+            "max_tokens": 300,
+        }).encode("utf-8")
+
+        req = urlreq.Request(
+            f"{base_url}/chat/completions",
+            data=request_body,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+                "User-Agent": "Pharmaguard/1.0",
+            },
+            method="POST",
+        )
+        with urlreq.urlopen(req, timeout=20) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            reply = result["choices"][0]["message"]["content"].strip()
+            return jsonify({"reply": reply})
+
+    except Exception as e:
+        print(f"[LLM] Chat error: {e}")
+        return jsonify({"reply": (
+            "I had trouble generating a response. "
+            "Please try again or ask your doctor directly."
+        )})
+
+
 # ---------------------------------------------------------------------------
 # Community & Twin Finder Routes
 # ---------------------------------------------------------------------------
