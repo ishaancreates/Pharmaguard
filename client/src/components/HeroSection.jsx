@@ -127,6 +127,7 @@ export default function HeroSection() {
               className="font-light leading-[1.1] text-[#0b1e40] tracking-[-0.01em]"
               style={{
                 fontFamily: "Mulish",
+                fontWeight:500,
                 fontSize: "clamp(2.1rem, 4vw, 3.3rem)",
               }}
               data-reveal
@@ -167,10 +168,10 @@ export default function HeroSection() {
             <div className="flex items-center gap-5 pt-1" data-reveal>
               <a
                 href="/#analyze"
-                className="group inline-flex items-center gap-2 bg-[#a9bb9d] text-[#f7f5f2] rounded-[2px] text-[0.74rem] font-medium tracking-[0.1em] uppercase no-underline relative overflow-hidden transition-all duration-300 hover:shadow-[0_6px_28px_rgba(11,30,64,0.22)] hover:-translate-y-px"
+                className="group inline-flex items-center gap-2 bg-[#a9bb9d] text-[#ffffff] rounded-[2px] text-[0.74rem] font-medium tracking-[0.1em] uppercase no-underline relative overflow-hidden transition-all duration-300 hover:shadow-[0_6px_28px_rgba(11,30,64,0.22)] hover:-translate-y-px"
                 style={{ padding: "10px 22px" }}
               >
-                <span className="absolute inset-0 bg-gradient-to-br from-[#a9bb9d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="absolute inset-0 bg-[#2d4020] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <span className="relative z-10">Explore PharmaGuard</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

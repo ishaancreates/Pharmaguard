@@ -7,3 +7,8 @@ Werkzeug==3.0.1
 
 python-dotenv==1.0.1
 openpyxl==3.1.5
+
+# OCR — server-side Tesseract (replaces browser-based tesseract.js)
+pytesseract==0.3.13
+Pillow==11.1.0
+numpy==1.26.4

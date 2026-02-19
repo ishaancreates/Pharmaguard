@@ -13,13 +13,11 @@ export default function Home() {
     <main className="min-h-screen bg-white text-[#0b1e40] overflow-x-hidden">
       <NavBar />
       <HeroSection />
+      <AnalysisTool />
       <HowItWorks />
       <FeaturesSection />
-      <AnalysisTool />
-      <SupportedGenesDrugs />
-
-      <IVFSection />
-      <ContactSection />
+     
+     <SupportedGenesDrugs />
       <Footer />
     </main>
   );

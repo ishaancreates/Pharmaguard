@@ -1,6 +1,12 @@
 "use client";
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 
+import Link from 'next/link';
+import {
+    FileSearch, Heart, Users, MessageSquare, Brain, Pill, ArrowRight, Zap
+} from 'lucide-react';
+
+
 const GENES = [
   {
     name: "CYP2D6",
@@ -239,7 +245,26 @@ export default function SupportedGenesDrugs() {
             />
           </div>
         </div>
- 
+  <div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="mt-14 bg-[#0b1e40] rounded-2xl p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6"
+              >
+                    <div>
+                     
+                        <h3 className="text-2xl font-bold text-white mb-1">Start Your Pharmacogenomic Journey</h3>
+                        <p className="text-slate-400 text-sm">Upload your VCF file and get your first analysis in under 30 seconds.</p>
+                    </div>
+                    <Link
+                        href="/#analysis"
+                        className="shrink-0 flex items-center gap-2 bg-white text-[#0b1e40] font-semibold px-7 py-3.5 rounded-xl hover:bg-[#a9bb9d]/20 transition-colors shadow-lg"
+                    >
+                        Get Started
+                        <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    </div>
     </section>
   );
 }

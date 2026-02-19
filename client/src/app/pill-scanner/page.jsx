@@ -7,15 +7,15 @@
  *
  * Architecture:
  *   Camera stream (getUserMedia) → Canvas frame capture (requestAnimationFrame)
- *   → Tesseract.js OCR (Web Worker, runs off main thread) → pillScannerUtils
+ *   → Backend /api/ocr (pytesseract, native Tesseract 5) → pillScannerUtils
  *   assessRisk() → Visual overlay (CSS animations, flash/pulse/glow) → Result panel
  *
  * The VCF patient variants are pulled from sessionStorage (set by the existing
  * vcfValidator / pharmacogenomics.js integration). Key: "pgx_variants".
  * If absent, the scanner warns the user to upload their VCF first.
  *
- * Tesseract.js is loaded via dynamic import so it doesn't bloat the initial
- * bundle — it only instantiates when the scanner page is actually visited.
+ * OCR is performed server-side on the Python backend for significantly faster
+ * processing compared to browser-based Tesseract.js / WASM.
  *
  * REDESIGNED: Side-by-side layout with live color-coded scan feed panel.
  * ─────────────────────────────────────────────────────────────────────────────
@@ -36,6 +36,7 @@ import { useAuth } from "@/context/AuthContext";
 import NavBar from "@/components/NavBar";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const SCAN_INTERVAL_MS = 800;
 const MIN_OCR_CONFIDENCE = 50;
 const RESULT_HOLD_MS = 6000;
@@ -143,7 +144,6 @@ export default function PillScannerPage() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const overlayCanvasRef = useRef(null);
-  const tesseractWorkerRef = useRef(null);
   const scanIntervalRef = useRef(null);
   const streamRef = useRef(null);
   const resultTimerRef = useRef(null);
@@ -160,7 +160,7 @@ export default function PillScannerPage() {
   const [ocrRawText, setOcrRawText] = useState("");
   const [torchOn, setTorchOn] = useState(false);
   const [cameraPermission, setCameraPermission] = useState("unknown");
-  const [workerReady, setWorkerReady] = useState(false);
+  const [ocrReady, setOcrReady] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [flashActive, setFlashActive] = useState(false);
@@ -241,44 +241,28 @@ export default function PillScannerPage() {
     if (vcfInputRef.current) vcfInputRef.current.value = "";
   }, []);
 
-  // ── 2. Initialise Tesseract.js worker ─────────────────────────────────────
-  const initTesseract = useCallback(async () => {
+  // ── 2. Check backend OCR health ───────────────────────────────────────────
+  const checkOcrBackend = useCallback(async () => {
     try {
-      const { createWorker } = await import("tesseract.js");
-
-      const worker = await createWorker("eng", 1, {
-        logger: (m) => {
-          if (m.status === "recognizing text") {
-            setProcessingProgress(Math.round(m.progress * 100));
-          }
-        },
-      });
-
-      await worker.setParameters({
-        tessedit_pageseg_mode: "1",
-        tessedit_char_whitelist:
-          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 -.",
-        preserve_interword_spaces: "1",
-      });
-
-      tesseractWorkerRef.current = worker;
-      setWorkerReady(true);
-      console.log("[PillScanner] Tesseract worker initialized ✓");
+      const res = await fetch(`${API_URL}/health`, { method: "GET" });
+      if (res.ok) {
+        setOcrReady(true);
+        console.log("[PillScanner] Backend OCR ready ✓");
+      } else {
+        throw new Error(`Backend health check returned ${res.status}`);
+      }
     } catch (err) {
-      console.error("[PillScanner] Tesseract init failed:", err);
+      console.error("[PillScanner] Backend OCR not reachable:", err);
       setErrorMessage(
-        "OCR engine failed to load. Check your network connection.",
+        `OCR backend not reachable at ${API_URL}. Please ensure the Python backend is running.`,
       );
       setScanState(SCAN_STATES.ERROR);
     }
   }, []);
 
   useEffect(() => {
-    initTesseract();
-    return () => {
-      tesseractWorkerRef.current?.terminate();
-    };
-  }, [initTesseract]);
+    checkOcrBackend();
+  }, [checkOcrBackend]);
 
   // ── 3. Camera lifecycle ───────────────────────────────────────────────────
   const startCamera = useCallback(async () => {
@@ -354,6 +338,7 @@ export default function PillScannerPage() {
   }, [torchOn]);
 
   // ── 5. Frame capture + OCR pipeline ──────────────────────────────────────
+  // ── 5. Frame capture — returns base64 PNG for backend OCR ─────────────────
   const captureFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -365,6 +350,7 @@ export default function PillScannerPage() {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+    // Crop to center region (where pill label text is most likely)
     const cropX = canvas.width * 0.1;
     const cropY = canvas.height * 0.2;
     const cropW = canvas.width * 0.8;
@@ -372,6 +358,7 @@ export default function PillScannerPage() {
 
     const croppedData = ctx.getImageData(cropX, cropY, cropW, cropH);
 
+    // Basic grayscale + contrast enhancement before sending to backend
     const data = croppedData.data;
     let totalLuminance = 0;
     const pixelCount = data.length / 4;
@@ -400,33 +387,51 @@ export default function PillScannerPage() {
     tmpCanvas.height = cropH;
     tmpCanvas.getContext("2d").putImageData(croppedData, 0, 0);
 
-    return tmpCanvas;
+    // Return base64 PNG for the backend
+    return tmpCanvas.toDataURL("image/png");
   }, []);
 
-  const runOcr = useCallback(async (frameCanvas) => {
-    if (!tesseractWorkerRef.current || !frameCanvas) return null;
+  // ── 5b. Send frame to backend /api/ocr instead of browser Tesseract ──────
+  const runOcr = useCallback(async (imageBase64) => {
+    if (!imageBase64) return null;
 
     try {
-      const { data } = await tesseractWorkerRef.current.recognize(frameCanvas);
+      setProcessingProgress(30);
 
-      const words = data.words
-        ?.filter((w) => w.confidence >= MIN_OCR_CONFIDENCE)
-        .map((w) => w.text)
-        .join(" ");
+      const res = await fetch(`${API_URL}/api/ocr`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageBase64 }),
+      });
+
+      setProcessingProgress(80);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error("[PillScanner] Backend OCR error:", errData);
+        return null;
+      }
+
+      const result = await res.json();
+      setProcessingProgress(100);
+
+      console.log(
+        `[PillScanner] Backend OCR: ${result.processing_ms?.toFixed(0)}ms, confidence: ${result.confidence}`,
+      );
 
       return {
-        text: data.text,
-        filteredText: words || data.text,
-        confidence: data.confidence,
+        text: result.text,
+        filteredText: result.filteredText || result.text,
+        confidence: result.confidence,
       };
     } catch (err) {
-      console.error("[PillScanner] OCR error:", err);
+      console.error("[PillScanner] OCR fetch error:", err);
       return null;
     }
   }, []);
 
   const processScan = useCallback(async () => {
-    if (scanState === SCAN_STATES.PROCESSING || !workerReady) return;
+    if (scanState === SCAN_STATES.PROCESSING || !ocrReady) return;
 
     setScanState(SCAN_STATES.PROCESSING);
     setProcessingProgress(0);
@@ -503,7 +508,7 @@ export default function PillScannerPage() {
       setAssessment(null);
       setOcrRawText("");
     }, RESULT_HOLD_MS);
-  }, [scanState, workerReady, captureFrame, runOcr, patientVariants]);
+  }, [scanState, ocrReady, captureFrame, runOcr, patientVariants]);
 
   // ── 6. Flash effect ───────────────────────────────────────────────────────
   const triggerFlash = useCallback((signal) => {
@@ -628,8 +633,8 @@ export default function PillScannerPage() {
             {/* VCF status badge */}
             <div
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${vcfLoaded
-                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                : "bg-amber-50 border-amber-200 text-amber-700"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-amber-50 border-amber-200 text-amber-700"
                 }`}
             >
               <span
@@ -872,9 +877,9 @@ export default function PillScannerPage() {
                         </div>
                         <div className="text-center">
                           <p className="text-neutral-400 text-sm font-medium">
-                            {workerReady
+                            {ocrReady
                               ? "Ready to scan"
-                              : "Loading OCR engine…"}
+                              : "Connecting to OCR backend…"}
                           </p>
                           <p className="text-neutral-600 text-xs mt-1">
                             Point your camera at a pill bottle or prescription
@@ -963,13 +968,13 @@ export default function PillScannerPage() {
               {!cameraActive ? (
                 <button
                   onClick={startCamera}
-                  disabled={!workerReady}
+                  disabled={!ocrReady}
                   className="flex items-center gap-2.5 bg-[#0b1e40] hover:bg-[#162d5c] disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-full font-semibold text-sm transition-all duration-200 shadow-lg shadow-[#0b1e40]/25 hover:shadow-xl hover:shadow-[#0b1e40]/30 cursor-pointer"
                 >
-                  {!workerReady ? (
+                  {!ocrReady ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Loading OCR…
+                      Connecting…
                     </>
                   ) : (
                     <>
@@ -1025,8 +1030,8 @@ export default function PillScannerPage() {
                   <button
                     onClick={toggleTorch}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border cursor-pointer ${torchOn
-                      ? "bg-amber-50 border-amber-300 text-amber-700"
-                      : "border-neutral-200 hover:border-neutral-300 text-neutral-600"
+                        ? "bg-amber-50 border-amber-300 text-amber-700"
+                        : "border-neutral-200 hover:border-neutral-300 text-neutral-600"
                       }`}
                   >
                     <span>{torchOn ? "🔦" : "💡"}</span>
