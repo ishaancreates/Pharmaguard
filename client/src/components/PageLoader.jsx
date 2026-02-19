@@ -6,7 +6,8 @@ const GIF_DURATION_MS = 2800;
 const STORAGE_KEY = "pharmaguard_loader_shown";
 
 export default function PageLoader() {
-  const alreadySeen = typeof window !== "undefined" && sessionStorage.getItem(STORAGE_KEY);
+  const alreadySeen =
+    typeof window !== "undefined" && sessionStorage.getItem(STORAGE_KEY);
   const [visible, setVisible] = useState(!alreadySeen);
   const [fading, setFading] = useState(false);
 

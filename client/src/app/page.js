@@ -18,8 +18,8 @@ export default function Home() {
       <AnalysisTool />
       <HowItWorks />
       <FeaturesSection />
-     
-     <SupportedGenesDrugs />
+
+      <SupportedGenesDrugs />
       <Footer />
     </main>
   );

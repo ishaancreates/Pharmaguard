@@ -2,9 +2,5 @@
 import { AuthProvider } from "@/context/AuthContext";
 
 export default function Providers({ children }) {
-  return (
-    <AuthProvider>
-      {children}
-    </AuthProvider>
-  );
+  return <AuthProvider>{children}</AuthProvider>;
 }
