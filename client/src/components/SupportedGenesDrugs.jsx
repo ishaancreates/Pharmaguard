@@ -1,3 +1,6 @@
+"use client";
+import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
+
 const GENES = [
   {
     name: "CYP2D6",
@@ -105,10 +108,8 @@ export default function SupportedGenesDrugs() {
     <section id="genes" className="py-24 px-4 bg-gradient-to-b from-white to-[#f0f7f4]">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 bg-white border border-[#a9bb9d]/30 text-[#5a7a52] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase shadow-sm">
-            Database
-          </div>
+       
+        
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0b1e40] mb-4 tracking-tight">
             Genes & Drugs Covered
           </h2>
@@ -211,66 +212,34 @@ export default function SupportedGenesDrugs() {
           ))}
         </div>
 
-        {/* ── Drug-Gene Interaction Table ── */}
-        <div className="bg-white border border-[#a9bb9d]/20 rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-[#a9bb9d]/20">
-            <h3 className="text-[#0b1e40] font-bold text-lg">
-              Drug–Gene Interactions
-            </h3>
-            <p className="text-[#64748b] text-xs mt-1">
-              Key pharmacogenomic relationships analyzed by PharmaGuard
-            </p>
+        {/* ── Drug-Gene Interaction Cards ── */}
+        <div>
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-bold text-[#0b1e40]">Drug–Gene Interactions</h3>
+            <p className="text-[#64748b] text-xs mt-1">Key pharmacogenomic relationships analyzed by PharmaGuard</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#a9bb9d]/20 bg-[#f0f7f4]">
-                  <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-6 py-3">
-                    Drug
-                  </th>
-                  <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-4 py-3">
-                    Gene
-                  </th>
-                  <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-4 py-3 hidden sm:table-cell">
-                    Mechanism
-                  </th>
-                  <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-4 py-3">
-                    Key Risk
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {DRUG_GENE_MAP.map((row, i) => (
-                  <tr
-                    key={row.drug}
-                    className={`border-b border-[#a9bb9d]/20 hover:bg-[#a9bb9d]/5 transition-colors ${i === DRUG_GENE_MAP.length - 1 ? "border-none" : ""
-                      }`}
-                  >
-                    <td className="px-6 py-3.5">
-                      <span className="text-[#0b1e40] text-sm font-semibold font-mono">
-                        {row.drug}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-[#5a7a52] text-xs font-bold font-mono bg-[#a9bb9d]/10 border border-[#a9bb9d]/25 px-2 py-0.5 rounded">
-                        {row.gene}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 hidden sm:table-cell">
-                      <span className="text-[#64748b] text-xs">
-                        {row.mechanism}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-amber-700 text-xs">{row.risk}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex flex-col gap-4 overflow-hidden">
+            <InfiniteMovingCards
+              items={DRUG_GENE_MAP.map((r) => ({
+                name: r.drug,
+                title: r.gene,
+                quote: `${r.mechanism} — ${r.risk}`,
+              }))}
+              direction="left"
+              speed="slow"
+            />
+            <InfiniteMovingCards
+              items={[...DRUG_GENE_MAP].reverse().map((r) => ({
+                name: r.drug,
+                title: r.gene,
+                quote: `${r.mechanism} — ${r.risk}`,
+              }))}
+              direction="right"
+              speed="slow"
+            />
           </div>
         </div>
-      </div>
+ 
     </section>
   );
 }
