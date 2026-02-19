@@ -22,12 +22,15 @@ export default function CommunityPage() {
       <NavBar />
       <div className="max-w-6xl mx-auto pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
           {/* Main Feed Column */}
           <div className="lg:col-span-2 space-y-6">
             <div className="mb-2">
-              <h1 className="text-3xl font-extrabold text-[#0b1e40] tracking-tight">Community Feed</h1>
-              <p className="text-[#64748b]">Connect with patients who share your genetic profile.</p>
+              <h1 className="text-3xl font-extrabold text-[#0b1e40] tracking-tight">
+                Community Feed
+              </h1>
+              <p className="text-[#64748b]">
+                Connect with patients who share your genetic profile.
+              </p>
             </div>
 
             <PostComposer onPostCreated={handlePostCreated} />
@@ -42,11 +45,12 @@ export default function CommunityPage() {
             <div className="bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 rounded-2xl p-6">
               <h4 className="text-[#5a7a52] font-bold mb-2">Did you know?</h4>
               <p className="text-sm text-[#5a7a52]/80 leading-relaxed">
-                Patients with the same CYP2D6 phenotype often have similar reactions to codeine and antidepressants. Sharing your experience helps others!
+                Patients with the same CYP2D6 phenotype often have similar
+                reactions to codeine and antidepressants. Sharing your
+                experience helps others!
               </p>
             </div>
           </div>
-
         </div>
       </div>
     </main>
