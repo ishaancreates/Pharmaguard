@@ -2,6 +2,7 @@
 import React from "react";
 import Image from "next/image";
 import { FloatingNav } from "@/components/ui/floating-navbar";
+import { useAuth } from "@/context/AuthContext";
 import {
   IconHome,
   IconDna,
@@ -11,6 +12,9 @@ import {
   IconRocket,
   IconMessageCircle,
   IconLogin2,
+  IconWallet,
+  IconLogout,
+  IconUserCircle,
 } from "@tabler/icons-react";
 
 const navItems = [
@@ -30,12 +34,7 @@ const navItems = [
   //  icon: <IconFlask className="h-4 w-4" />,
   //},
   {
-    name: "Genes & Drugs",
-    link: "/#genes",
-    icon: <IconDna className="h-4 w-4" />,
-  },
-  {
-    name: "IVF",
+    name: "Family Genetics",
     link: "/ivf",
     icon: <IconTestPipe className="h-4 w-4" />, // Replace with an appropriate IVF icon
   },
@@ -58,17 +57,36 @@ const logo = (
   </a>
 );
 
-const ctaButton = (
-  <a
-    href="/login"
-    className="relative rounded-full bg-[#a9bb9d] px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#8fa88a] hover:shadow-lg hover:shadow-[#a9bb9d]/30 flex items-center gap-1.5"
-  >
-    <IconLogin2 className="h-3.5 w-3.5" />
-    <span>Login</span>
-  </a>
-);
-
 export default function NavBar() {
+  const { isAuthenticated, shortAddress, user, disconnectWallet } = useAuth();
+
+  const ctaButton = isAuthenticated ? (
+    <div className="flex items-center gap-2">
+      <a
+        href="/profile"
+        className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 text-xs font-semibold text-[#6b8760] hover:bg-[#a9bb9d]/20 transition-all"
+        title="My Profile"
+      >
+        <IconUserCircle className="h-3.5 w-3.5" />
+        {shortAddress}
+      </a>
+      <button
+        onClick={disconnectWallet}
+        className="rounded-full bg-[#a9bb9d]/10 p-2 text-[#a9bb9d] hover:bg-red-50 hover:text-red-500 transition-all cursor-pointer"
+        title="Disconnect wallet"
+      >
+        <IconLogout className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  ) : (
+    <a
+      href="/login"
+      className="relative rounded-full bg-[#a9bb9d] px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#8fa88a] hover:shadow-lg hover:shadow-[#a9bb9d]/30 flex items-center gap-1.5"
+    >
+      <IconLogin2 className="h-3.5 w-3.5" />
+      <span>Login</span>
+    </a>
+  );
   return (
     <>
       {/* ── Static top navbar ── */}
@@ -95,22 +113,52 @@ export default function NavBar() {
             </nav>
 
             {/* CTA */}
-            <a
-              href="/login"
-              className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-5 py-2 text-sm font-semibold text-white hover:bg-[#8fa88a] hover:shadow-lg hover:shadow-[#a9bb9d]/30 transition-all duration-300"
-            >
-              <IconLogin2 className="h-3.5 w-3.5" />
-              Login
-            </a>
+            {isAuthenticated ? (
+              <div className="hidden md:flex items-center gap-2">
+                <a
+                  href="/profile"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 text-xs font-semibold text-[#6b8760] hover:bg-[#a9bb9d]/20 transition-all"
+                  title="My Profile"
+                >
+                  <IconUserCircle className="h-3.5 w-3.5" />
+                  {shortAddress}
+                </a>
+                <button
+                  onClick={disconnectWallet}
+                  className="rounded-full bg-[#a9bb9d]/10 p-2 text-[#a9bb9d] hover:bg-red-50 hover:text-red-500 transition-all cursor-pointer"
+                  title="Disconnect wallet"
+                >
+                  <IconLogout className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <a
+                href="/login"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-5 py-2 text-sm font-semibold text-white hover:bg-[#8fa88a] hover:shadow-lg hover:shadow-[#a9bb9d]/30 transition-all duration-300"
+              >
+                <IconLogin2 className="h-3.5 w-3.5" />
+                Login
+              </a>
+            )}
 
-            {/* Mobile: just the CTA pill */}
-            <a
-              href="/login"
-              className="md:hidden inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#8fa88a] transition-all duration-300"
-            >
-              <IconLogin2 className="h-3 w-3" />
-              Login
-            </a>
+            {/* Mobile: wallet or login */}
+            {isAuthenticated ? (
+              <a
+                href="/profile"
+                className="md:hidden inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d]/10 px-3 py-1.5 text-xs font-semibold text-[#6b8760] border border-[#a9bb9d]/20"
+              >
+                <IconUserCircle className="h-3.5 w-3.5" />
+                {shortAddress}
+              </a>
+            ) : (
+              <a
+                href="/login"
+                className="md:hidden inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#8fa88a] transition-all duration-300"
+              >
+                <IconLogin2 className="h-3 w-3" />
+                Login
+              </a>
+            )}
           </div>
         </div>
       </header>

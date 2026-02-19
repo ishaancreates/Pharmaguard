@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { IconSend, IconUser, IconMessage, IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
 
-export default function ChatPage() {
+function ChatPageInner() {
     const searchParams = useSearchParams();
     // In a real app, get current user ID from context/auth
     // For demo, we assume we are "Ishaan_Genetics" (ID from seed checking needed, or we fetch it)
@@ -290,5 +290,17 @@ export default function ChatPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ChatPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full border-2 border-[#a9bb9d] border-t-transparent animate-spin" />
+            </div>
+        }>
+            <ChatPageInner />
+        </Suspense>
     );
 }

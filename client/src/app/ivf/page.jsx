@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Upload, Activity, Users, FileText, Heart, AlertCircle } from 'lucide-react';
 import CompatibilityReport from '../../components/CompatibilityReport';
+import ReportChatbot from '../../components/ReportChatbot';
 
 
 export default function IVFPage() {
@@ -153,7 +154,11 @@ export default function IVFPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <CompatibilityReport results={results.compatibility} />
+            <CompatibilityReport
+              results={results.compatibility}
+              aiSummary={results.ai_summary}
+            />
+            <ReportChatbot reportContext={results.compatibility} />
           </motion.div>
         )}
       </div>

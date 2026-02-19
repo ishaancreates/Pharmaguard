@@ -5,9 +5,90 @@ Calculates Mendelian inheritance probabilities for pharmacogenomic variants
 based on two parents' genetic profiles.
 """
 
-from typing import Dict, List, Tuple
+import json
+import os
+from typing import Dict, List, Optional, Tuple
 from collections import Counter
 from pgx_knowledgebase import ALLELE_FUNCTION, KNOWN_GENES, _function_score, infer_phenotype, EXTENSIVE, INTERMEDIATE, POOR, ULTRA_RAPID, INDETERMINATE
+
+
+def generate_compatibility_summary(report: Dict[str, dict]) -> Optional[str]:
+    """
+    Call Groq (or any OpenAI-compatible LLM) to generate a patient-friendly
+    plain-language summary of the compatibility report.
+    Returns None if no API key is set or the call fails.
+    """
+    api_key = (
+        os.environ.get("GROQ_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or os.environ.get("LLM_API_KEY")
+    )
+    if not api_key:
+        return None
+
+    base_url = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    model = os.environ.get("LLM_MODEL", "llama-3.3-70b-versatile")
+
+    # Build a compact summary of results to include in the prompt
+    summary_lines = []
+    for gene, data in report.items():
+        high_risks = [r for r in data.get("child_risks", []) if r["risk"] in ("danger", "warning")]
+        for r in data.get("child_risks", []):
+            summary_lines.append(
+                f"  - {gene}: {r['probability']*100:.0f}% chance of '{r['phenotype']}' (Risk: {r['risk']})"
+            )
+
+    system_prompt = (
+        "You are a friendly, empathetic genetic counselor. "
+        "A couple used a genetics service to understand how their children might respond to certain medications. "
+        "Explain the results in plain English a non-scientist can understand. "
+        "Be warm, reassuring, and clear. Avoid jargon — if you must use a medical term, immediately explain it. "
+        "Structure your response as: 1) A 2-sentence overall summary; 2) 2-3 bullet points on notable findings; "
+        "3) A sentence on what they should do next (consult a doctor). "
+        "Do NOT make it sound scary. "
+        "Keep the entire response under 200 words."
+    )
+
+    user_prompt = (
+        "Here are the genetic compatibility results for a couple:\n\n"
+        + "\n".join(summary_lines)
+        + "\n\nPlease generate a patient-friendly summary of these results."
+    )
+
+    try:
+        import urllib.request
+
+        request_body = json.dumps({
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            "temperature": 0.5,
+            "max_tokens": 400,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            f"{base_url}/chat/completions",
+            data=request_body,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+                "User-Agent": "Pharmaguard/1.0",
+            },
+            method="POST",
+        )
+
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            content = data["choices"][0]["message"]["content"].strip()
+            print(f"[LLM] ✓ Generated compatibility summary ({len(content)} chars)")
+            return content
+
+    except Exception as e:
+        print(f"[LLM] Compatibility summary generation failed: {e}")
+        return None
+
 
 def extract_alleles(gene_data) -> List[str]:
     """

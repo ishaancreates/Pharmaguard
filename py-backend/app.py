@@ -20,9 +20,12 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 from bson import ObjectId
+from groq import Groq
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+
 
 from parser import parse_vcf, parse_vcf_bytes
 from analyzer import analyze
@@ -35,15 +38,100 @@ from database import init_db, db
 # from models import ... 
 
 # from models import ... 
-from compatibility import calculate_inheritance
+from compatibility import calculate_inheritance, generate_compatibility_summary
 from matcher import find_matches
 
 app = Flask(__name__)
-# Allow CORS
 CORS(app)
 
 # Max upload size: 50 MB
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def summarize_results(results_dict):
+    """
+    Use Groq (using Llama 3) to generate a simple-English summary for patients.
+    """
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        print("Wait, GROQ_API_KEY is missing!")
+        return None
+
+    try:
+        from groq import Groq
+        client = Groq(api_key=api_key)
+        
+        # Phenotype abbreviation map for the prompt
+        pheno_map = {
+            "URM": "Ultra-rapid Metabolizer",
+            "NM": "Normal Metabolizer",
+            "IM": "Intermediate Metabolizer",
+            "PM": "Poor Metabolizer",
+        }
+
+        # Build a complete picture of ALL results for the LLM
+        all_findings = []
+        actionable_count = 0
+        for r in results_dict.get("results", []):
+            pharm_profile = r.get("pharmacogenomic_profile", {})
+            clin_rec = r.get("clinical_recommendation", {})
+            risk = r.get("risk_assessment", {})
+
+            phenotype_code = pharm_profile.get("phenotype", "Unknown")
+            phenotype_full = pheno_map.get(phenotype_code, phenotype_code)
+            drug = r.get("drug", "Unknown Drug")
+            gene = pharm_profile.get("primary_gene", "Unknown")
+            diplotype = pharm_profile.get("diplotype", "")
+            risk_label = risk.get("risk_label", "Unknown")
+            recommendation = clin_rec.get("action", "No recommendation")
+
+            finding = (
+                f"- Drug: {drug} | Gene: {gene} | Diplotype: {diplotype} | "
+                f"Phenotype: {phenotype_full} | Risk: {risk_label} | "
+                f"Recommendation: {recommendation}"
+            )
+            all_findings.append(finding)
+
+            # Count actionable items
+            if risk_label in ("Adjust Dosage", "Toxic", "Ineffective"):
+                actionable_count += 1
+
+        print(f"Debug: Found {len(all_findings)} total findings, {actionable_count} actionable.")
+        print(f"Debug: Findings:\n" + "\n".join(all_findings))
+
+        if not all_findings:
+            all_findings.append("No drug interaction results were generated.")
+
+        prompt = f"""You are a friendly genetic counselor explaining pharmacogenomic test results to a patient.
+
+Here are ALL the findings from the patient's analysis:
+
+{chr(10).join(all_findings)}
+
+IMPORTANT INSTRUCTIONS:
+- {actionable_count} out of {len(all_findings)} drugs require dosage adjustment or have safety concerns.
+- If ANY drug has Risk "Adjust Dosage", "Toxic", or "Ineffective", you MUST mention it clearly.
+- Do NOT say everything is fine if there are actionable findings.
+- Explain in simple language what each finding means for the patient.
+- Start with "Based on your genetic profile..."
+- Keep the response concise (3-4 sentences max).
+"""
+
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=200,
+            temperature=0.5,
+        )
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        print(f"LLM Summary failed: {e}")
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +157,86 @@ def health():
     # Optional: Check DB status
     db_status = "connected" if db is not None else "disconnected"
     return jsonify({"status": "ok", "db": db_status})
+
+
+# ---------------------------------------------------------------------------
+# Auth — Algorand Wallet-based Signup & Login
+# ---------------------------------------------------------------------------
+
+@app.route("/api/auth/signup", methods=["POST", "OPTIONS"])
+def auth_signup():
+    """Register a new user with their Algorand wallet address."""
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
+    if db is None:
+        return jsonify({"error": "Database not connected"}), 503
+
+    data = request.get_json(silent=True) or {}
+    wallet = data.get("wallet_address", "").strip()
+    role = data.get("role", "patient").strip()
+    full_name = data.get("fullName", "").strip()
+
+    if not wallet or len(wallet) != 58:
+        return jsonify({"error": "Invalid Algorand wallet address"}), 400
+    if role not in ("patient", "doctor"):
+        return jsonify({"error": "Role must be 'patient' or 'doctor'"}), 400
+    if not full_name:
+        return jsonify({"error": "Full name is required"}), 400
+
+    # Check if wallet already registered
+    if db.users.find_one({"wallet_address": wallet}):
+        return jsonify({"error": "An account with this wallet already exists"}), 409
+
+    user_doc = {
+        "wallet_address": wallet,
+        "role": role,
+        "fullName": full_name,
+        "created_at": datetime.utcnow(),
+    }
+    result = db.users.insert_one(user_doc)
+    user_doc["_id"] = str(result.inserted_id)
+
+    return jsonify({
+        "status": "ok",
+        "user": {
+            "id": user_doc["_id"],
+            "wallet_address": wallet,
+            "role": role,
+            "fullName": full_name,
+        },
+    }), 201
+
+
+@app.route("/api/auth/login", methods=["POST", "OPTIONS"])
+def auth_login():
+    """Look up an existing user by their Algorand wallet address."""
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
+    if db is None:
+        return jsonify({"error": "Database not connected"}), 503
+
+    data = request.get_json(silent=True) or {}
+    wallet = data.get("wallet_address", "").strip()
+
+    if not wallet:
+        return jsonify({"error": "Wallet address is required"}), 400
+
+    user = db.users.find_one({"wallet_address": wallet})
+    if not user:
+        return jsonify({"error": "No account found for this wallet. Please sign up first."}), 404
+
+    return jsonify({
+        "status": "ok",
+        "user": {
+            "id": str(user["_id"]),
+            "wallet_address": user["wallet_address"],
+            "role": user.get("role", "patient"),
+            "fullName": user.get("fullName", ""),
+        },
+    })
+
 
 
 @app.route("/drugs", methods=["GET"])
@@ -149,9 +317,31 @@ def analyze_endpoint():
 
     # ── Run analysis ──
     try:
-        result = analyze(vcf, drugs, sample=sample)
-        result._parse_time_ms = parse_time_ms
-        return jsonify(result.to_dict()), 200
+        from analyzer import analyze
+        
+        # Parse the VCF
+        if not tmp_path:
+             # If temporary file not used (was parsing bytes directly)
+             # we might need to recreate logic or handle above better.
+             pass
+
+        # Call the analysis engine
+        # Since 'vcf' object is already parsed above
+        analysis_result = analyze(vcf, drugs, sample=sample)
+        
+        # Convert to dict
+        final_json = analysis_result.to_dict()
+        final_json["_parse_time_ms"] = parse_time_ms
+        
+        # Add LLM Summary
+        try:
+             summary_text = summarize_results(final_json)
+             if summary_text:
+                 final_json["summary"]["llm_explanation"] = summary_text
+        except Exception:
+             pass
+
+        return jsonify(final_json), 200
 
     except Exception as e:
         traceback.print_exc()
@@ -278,6 +468,10 @@ def couple_analysis():
     # 3. Calculate Inheritance
     try:
         compatibility_report = calculate_inheritance(user_genes, partner_genes)
+
+        # Generate AI patient-friendly summary
+        ai_summary = generate_compatibility_summary(compatibility_report)
+
         # Convert ObjectIds to strings for JSON serialization
         for g in user_genes:
             if "_id" in g:
@@ -291,12 +485,102 @@ def couple_analysis():
 
         return jsonify({
             "compatibility": compatibility_report,
+            "ai_summary": ai_summary,
             "user_profile": user_genes,
             "partner_profile": partner_genes
         })
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Compatibility calculation failed: {str(e)}"}), 500
+
+
+@app.route("/api/report-chat", methods=["POST"])
+def report_chat():
+    """
+    Answers patient questions about their compatibility report using Groq AI.
+    Body: { message: str, report_context: dict }
+    """
+    data = request.get_json()
+    if not data or not data.get("message"):
+        return jsonify({"error": "Missing message"}), 400
+
+    user_message = data["message"]
+    report_context = data.get("report_context", {})
+
+    api_key = (
+        os.environ.get("GROQ_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or os.environ.get("LLM_API_KEY")
+    )
+
+    if not api_key:
+        # Fallback: template-based answer
+        return jsonify({"reply": (
+            "I'm sorry, the AI assistant isn't configured yet. "
+            "Please ask your doctor about your results."
+        )})
+
+    base_url = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    model = os.environ.get("LLM_MODEL", "llama-3.3-70b-versatile")
+
+    # Build a compact report summary for context
+    report_lines = []
+    for gene, info in report_context.items():
+        p1 = info.get("parent1_diplotype", "?")
+        p2 = info.get("parent2_diplotype", "?")
+        risks = info.get("child_risks", [])
+        top = risks[0] if risks else {}
+        report_lines.append(
+            f"- {gene}: Parent 1={p1}, Parent 2={p2}. "
+            f"Most likely child outcome: {top.get('phenotype','Unknown')} "
+            f"({int(top.get('probability',0)*100)}%)"
+        )
+
+    system_prompt = (
+        "You are a friendly, empathetic genetic counselor chatbot embedded in a pharmacogenomics report. "
+        "A patient is looking at their genetic compatibility report and asking questions. "
+        "Your job is to explain things in very simple, warm, non-scary language. "
+        "Avoid jargon — if you must use medical terms, immediately explain them in brackets. "
+        "Keep answers concise (3-5 sentences max), structured, and reassuring. "
+        "Always end with a note to consult their doctor for medical decisions. "
+        "Do NOT make diagnoses or prescribe anything. "
+        "Here is the patient's report context:\n"
+        + "\n".join(report_lines)
+    )
+
+    try:
+        import urllib.request as urlreq
+        request_body = json.dumps({
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+            "temperature": 0.6,
+            "max_tokens": 300,
+        }).encode("utf-8")
+
+        req = urlreq.Request(
+            f"{base_url}/chat/completions",
+            data=request_body,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+                "User-Agent": "Pharmaguard/1.0",
+            },
+            method="POST",
+        )
+        with urlreq.urlopen(req, timeout=20) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            reply = result["choices"][0]["message"]["content"].strip()
+            return jsonify({"reply": reply})
+
+    except Exception as e:
+        print(f"[LLM] Chat error: {e}")
+        return jsonify({"reply": (
+            "I had trouble generating a response. "
+            "Please try again or ask your doctor directly."
+        )})
 
 
 # ---------------------------------------------------------------------------

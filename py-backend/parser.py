@@ -84,7 +84,7 @@ class Variant:
     # --- Pharmacogenomic convenience accessors ---
     @property
     def gene(self) -> Optional[str]:
-        return self.info.get("GENE")
+        return self.info.get("GENE") or self.info.get("PX")
 
     @property
     def star_allele(self) -> Optional[str]:

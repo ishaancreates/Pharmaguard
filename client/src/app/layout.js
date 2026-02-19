@@ -1,5 +1,6 @@
 import { Mulish, Oxanium } from "next/font/google";
 import "./globals.css";
+import Providers from "./Providers";
 
 const mulish = Mulish({
   subsets: ["latin"],
@@ -25,7 +26,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${mulish.variable} ${oxanium.variable} antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
