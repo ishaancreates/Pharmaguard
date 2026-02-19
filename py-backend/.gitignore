@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+error_log.txt
+test_flask.py
+test_mongo.py
+.env
+.venv
+env/
+venv/

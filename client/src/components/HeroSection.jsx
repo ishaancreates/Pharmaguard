@@ -1,103 +1,81 @@
+"use client";
+import Image from "next/image";
+import React from "react";
+import { FlipWords } from "@/components/ui/flip-words";
+
 export default function HeroSection() {
-  const stats = [
-    { value: "100K+", label: "Preventable Deaths / Year" },
-    { value: "6",     label: "Critical Genes Analyzed"  },
-    { value: "6+",    label: "Supported Medications"    },
-    { value: "CPIC",  label: "Guideline Aligned"        },
-  ];
-
+  const words = ["safer", "smarter", "personalized", "precise"];
   return (
-    <section className="relative flex flex-col min-h-screen pt-16 overflow-hidden">
-      {/* ── Background: bgrift.png ── */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/bgrift.png')" }}
-      />
-      {/* White overlay to keep it readable — matches Dolphin light theme */}
-      <div className="absolute inset-0 bg-white/80" />
-      {/* Soft blue vignette on the right */}
-      <div className="absolute inset-0 bg-linear-to-l from-blue-100/60 via-transparent to-transparent" />
+    <section className="relative w-full h-[calc(100vh-82px)] bg-white flex items-center overflow-hidden">
+      {/* ── Pills — bottom-left ── */}
+      <div className="absolute bottom-0 left-0 w-200 h-auto   select-none pointer-events-none">
+        <Image
+          src="/pills.svg"
+          alt="Pharmaceutical capsules"
+          width={400}
+          height={320}
+          className="w-full h-auto object-contain object-bottom drop-shadow-xl"
+          priority
+        />
+      </div>
 
-      {/* ── Content ── */}
-      <div className="relative flex-1 flex flex-col">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex items-center py-16 sm:py-24">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-8 items-center">
+      {/* ── Gene / DNA — right side ── */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 h-auto w-100  select-none pointer-events-none">
+        <Image
+          src="/gene_new.png"
+          alt="DNA gene structure"
+          width={320}
+          height={400}
+          className="w-full h-auto object-contain object-right"
+          priority
+        />
+      </div>
 
-            {/* Left — Big heading (takes 3/5 width) */}
-            <div className="lg:col-span-3">
-              <div
-                className="inline-flex items-center gap-2 border border-[#1356be]/30 text-[#1356be] bg-blue-50 text-xs font-bold px-3.5 py-1.5 rounded-full mb-8 tracking-wider uppercase"
-                style={{fontFamily:"var(--font-mulish),Mulish,sans-serif"}}
-              >
-                <span className="w-1.5 h-1.5 bg-[#1356be] rounded-full animate-pulse" />
-                AI-Powered Pharmacogenomics
-              </div>
-
-              <h1
-                className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight text-[#0b1e40] mb-6"
-              >
-                Prevent
-                <span className="text-[#1356be]"> Adverse</span>
-                <br />
-                Drug Reactions
-                <br />
-                <span className="text-[#1356be]">with AI</span>
-              </h1>
+      {/* ── Main content ── */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
+          <div className="max-w-xl xl:max-w-2xl flex flex-col gap-6 pt-8  sm:pt-7">
+            {/* Headline */}
+            <div className="text-4xl align-text-top font-normal text-neutral-600 dark:text-neutral-400">
+              Predict Safer
+              <FlipWords words={words} /> <br />
+              Medication Decisions
             </div>
 
-            {/* Right — Description + CTA (takes 2/5 width) */}
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <div className="flex items-start gap-4">
-                {/* Accent line */}
-                <div className="w-8 h-0.5 bg-[#0b1e40] mt-3 shrink-0" />
-                <p
-                  className="text-[#4b5b7b] text-base leading-relaxed"
-                  style={{fontFamily:"var(--font-mulish),Mulish,sans-serif"}}
-                >
-                  Upload your VCF file and receive AI-powered personalized risk
-                  predictions for each drug — with CPIC-aligned clinical
-                  recommendations generated instantly.
-                </p>
-              </div>
+            {/* Divider + subtitle */}
+            <div className="h-px w-8 bg-neutral-400" />
+            <p className="text-sm leading-relaxed text-neutral-500">
+              Upload your VCF file and instantly assess drug safety, dosage
+              adjustments, and toxicity risks using{" "}
+              <span className="text-[#0b1e40] font-semibold">
+                CPIC-aligned pharmacogenomic analysis.
+              </span>
+            </p>
 
+            {/* CTA */}
+            <div>
               <a
                 href="#analyze"
-                className="self-start inline-flex items-center gap-2 border border-[#0b1e40] text-[#0b1e40] hover:bg-[#0b1e40] hover:text-white font-semibold text-sm px-7 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
-                style={{fontFamily:"var(--font-mulish),Mulish,sans-serif"}}
+                className="inline-flex items-center gap-2 rounded-full border-2 border-[#0b1e40] px-6 py-2.5 text-sm font-semibold text-[#0b1e40] transition-all duration-200 hover:bg-[#0b1e40] hover:text-white hover:shadow-lg hover:shadow-[#0b1e40]/20"
               >
-                Analyze My Genome
-                <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                Explore PharmaGuard
+                {/* simple arrow inline so no extra import needed */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="h-4 w-4"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </a>
             </div>
-
           </div>
         </div>
-
-        {/* ── Stats strip (bottom of hero, like Dolphin Pharma) ── */}
-        <div className="relative border-t border-[#dde8f4] bg-white/70 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#dde8f4]">
-              {stats.map((s, i) => (
-                <div key={i} className="flex flex-col items-center py-7 px-4">
-                  <span
-                    className="text-4xl font-extrabold text-[#0b1e40] leading-none mb-2"
-                  >
-                    {s.value}
-                  </span>
-                  <span
-                    className="text-sm text-[#64748b] text-center leading-snug font-medium"
-                    style={{fontFamily:"var(--font-mulish),Mulish,sans-serif"}}
-                  >
-                    {s.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+     
     </section>
   );
 }

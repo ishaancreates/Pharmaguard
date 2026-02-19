@@ -39,10 +39,10 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
   const sizePct = file ? Math.min((file.size / MAX_FILE_SIZE) * 100, 100) : 0;
 
   return (
-    <div className="bg-white border border-[#dde8f4] rounded-2xl p-6 shadow-sm">
+    <div className="bg-white border border-[#a9bb9d]/20 rounded-2xl p-6 shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-[#dde8f4] flex items-center justify-center text-[#1356be] text-sm font-bold">
+        <div className="w-8 h-8 rounded-lg bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 flex items-center justify-center text-[#5a7a52] text-sm font-bold">
           01
         </div>
         <div>
@@ -63,20 +63,19 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
           className={`
             relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer select-none
             transition-all duration-200
-            ${
-              dragging
-                ? "border-[#1356be] bg-blue-50 scale-[1.01]"
-                : "border-[#dde8f4] hover:border-[#1356be]/40 hover:bg-blue-50/50"
+            ${dragging
+              ? "border-[#a9bb9d] bg-[#a9bb9d]/10 scale-[1.01]"
+              : "border-[#a9bb9d]/30 hover:border-[#a9bb9d]/50 hover:bg-[#a9bb9d]/5"
             }
           `}
         >
           <div
-            className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-colors ${dragging ? "bg-blue-100" : "bg-blue-50"}`}
+            className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-colors ${dragging ? "bg-[#a9bb9d]/20" : "bg-[#a9bb9d]/10"}`}
           >
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              className={`w-7 h-7 transition-colors ${dragging ? "text-[#1356be]" : "text-[#94a3b8]"}`}
+              className={`w-7 h-7 transition-colors ${dragging ? "text-[#5a7a52]" : "text-[#94a3b8]"}`}
               stroke="currentColor"
               strokeWidth="1.5"
             >
@@ -94,10 +93,10 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
             or click to browse files
           </p>
           <div className="flex items-center justify-center gap-3">
-            <span className="inline-flex items-center gap-1.5 text-xs bg-blue-50 border border-[#dde8f4] text-[#64748b] px-3 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-xs bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 text-[#64748b] px-3 py-1 rounded-full">
               .vcf only
             </span>
-            <span className="text-xs bg-blue-50 border border-[#dde8f4] text-[#64748b] px-3 py-1 rounded-full">
+            <span className="text-xs bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 text-[#64748b] px-3 py-1 rounded-full">
               Max 5 MB
             </span>
           </div>

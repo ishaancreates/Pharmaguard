@@ -69,11 +69,11 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 px-4 bg-[#f0f5ff]">
+    <section id="how-it-works" className="py-24 px-4 bg-gradient-to-b from-[#f0f7f4] to-white">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-white border border-[#dde8f4] text-[#1356be] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase shadow-sm">
+          <div className="inline-flex items-center gap-2 bg-white border border-[#a9bb9d]/30 text-[#5a7a52] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase shadow-sm">
             Process
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0b1e40] mb-4">
@@ -87,20 +87,20 @@ export default function HowItWorks() {
         {/* Steps */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
           {/* Connecting line (desktop) */}
-          <div className="hidden md:block absolute top-14 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-px bg-linear-to-r from-[#dde8f4] via-[#1356be]/30 to-[#dde8f4]" />
+          <div className="hidden md:block absolute top-14 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-px bg-gradient-to-r from-[#a9bb9d]/20 via-[#a9bb9d]/40 to-[#a9bb9d]/20" />
 
           {steps.map((step, i) => (
             <div
               key={i}
-              className="relative bg-white border border-[#dde8f4] rounded-2xl p-7 hover:border-[#1356be]/40 hover:shadow-lg hover:shadow-blue-100/60 transition-all duration-300 group"
+              className="relative bg-white border border-[#a9bb9d]/20 rounded-2xl p-7 hover:border-[#a9bb9d]/50 hover:shadow-lg hover:shadow-[#a9bb9d]/15 transition-all duration-300 group"
             >
               {/* Step number top-right */}
-              <span className="absolute top-5 right-5 text-[#dde8f4] text-5xl font-black leading-none select-none group-hover:text-blue-100 transition-colors">
+              <span className="absolute top-5 right-5 text-[#a9bb9d]/20 text-5xl font-black leading-none select-none group-hover:text-[#a9bb9d]/30 transition-colors">
                 {step.number}
               </span>
 
               {/* Icon */}
-              <div className="w-14 h-14 rounded-xl bg-blue-50 border border-[#dde8f4] flex items-center justify-center text-[#1356be] mb-6 group-hover:bg-blue-100 group-hover:border-[#1356be]/30 transition-all">
+              <div className="w-14 h-14 rounded-xl bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 flex items-center justify-center text-[#5a7a52] mb-6 group-hover:bg-[#a9bb9d]/20 group-hover:border-[#a9bb9d]/40 transition-all">
                 {step.icon}
               </div>
 
@@ -111,7 +111,7 @@ export default function HowItWorks() {
                 {step.description}
               </p>
 
-              <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-[#dde8f4] text-[#1356be] text-xs font-semibold px-3 py-1.5 rounded-full">
+              <div className="inline-flex items-center gap-1.5 bg-[#a9bb9d]/10 border border-[#a9bb9d]/20 text-[#5a7a52] text-xs font-semibold px-3 py-1.5 rounded-full">
                 <svg
                   viewBox="0 0 24 24"
                   fill="currentColor"
@@ -130,7 +130,7 @@ export default function HowItWorks() {
         </div>
 
         {/* Risk Legend */}
-        <div className="mt-12 p-6 bg-white border border-[#dde8f4] rounded-2xl shadow-sm">
+        <div className="mt-12 p-6 bg-white border border-[#a9bb9d]/20 rounded-2xl shadow-sm">
           <p className="text-[#64748b] text-xs font-semibold uppercase tracking-widest mb-4 text-center">
             Risk Classification
           </p>
