@@ -10,6 +10,7 @@ import {
   IconInfoCircle,
   IconRocket,
   IconMessageCircle,
+  IconLogin2,
 } from "@tabler/icons-react";
 
 const navItems = [
@@ -59,11 +60,11 @@ const logo = (
 
 const ctaButton = (
   <a
-    href="/#analyze"
+    href="/login"
     className="relative rounded-full bg-[#a9bb9d] px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#8fa88a] hover:shadow-lg hover:shadow-[#a9bb9d]/30 flex items-center gap-1.5"
   >
-    <IconRocket className="h-3.5 w-3.5" />
-    <span>Let&apos;s Start</span>
+    <IconLogin2 className="h-3.5 w-3.5" />
+    <span>Login</span>
   </a>
 );
 
@@ -95,20 +96,20 @@ export default function NavBar() {
 
             {/* CTA */}
             <a
-              href="/#analyze"
+              href="/login"
               className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-5 py-2 text-sm font-semibold text-white hover:bg-[#8fa88a] hover:shadow-lg hover:shadow-[#a9bb9d]/30 transition-all duration-300"
             >
-              <IconRocket className="h-3.5 w-3.5" />
-              Let&apos;s Start
+              <IconLogin2 className="h-3.5 w-3.5" />
+              Login
             </a>
 
             {/* Mobile: just the CTA pill */}
             <a
-              href="/#analyze"
+              href="/login"
               className="md:hidden inline-flex items-center gap-1.5 rounded-full bg-[#a9bb9d] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#8fa88a] transition-all duration-300"
             >
-              <IconRocket className="h-3 w-3" />
-              Start
+              <IconLogin2 className="h-3 w-3" />
+              Login
             </a>
           </div>
         </div>
