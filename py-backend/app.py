@@ -201,7 +201,7 @@ def couple_analysis():
              except:
                  pass
         else:
-             partner_vcf_obj = parse_vcf_bytes(file_data, filename)
+             partner_vcf_obj = parse_vcf_bytes(file_data, filename=filename)
              
         # Analyze Partner (we don't need drugs, just genes)
         partner_result = analyze(partner_vcf_obj, [])
@@ -232,7 +232,7 @@ def couple_analysis():
                  except:
                      pass
             else:
-                 user_vcf_obj = parse_vcf_bytes(file_data, filename)
+                 user_vcf_obj = parse_vcf_bytes(file_data, filename=filename)
             
             user_result = analyze(user_vcf_obj, [])
             user_genes = [g.to_dict() for g in user_result.genes]

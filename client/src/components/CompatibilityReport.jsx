@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Download, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
