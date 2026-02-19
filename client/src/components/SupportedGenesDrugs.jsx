@@ -102,20 +102,17 @@ const DRUG_GENE_MAP = [
 
 export default function SupportedGenesDrugs() {
   return (
-    <section id="genes" className="py-24 px-4 relative">
-      {/* Section separator */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-[#1e3a5f] to-transparent" />
-
+    <section id="genes" className="py-24 px-4 bg-[#f0f5ff]">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 bg-[#0d1526] border border-[#1e3a5f] text-slate-500 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase">
+          <div className="inline-flex items-center gap-2 bg-white border border-[#dde8f4] text-[#1356be] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase shadow-sm">
             Database
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0b1e40] mb-4 tracking-tight">
             Genes & Drugs Covered
           </h2>
-          <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed">
+          <p className="text-[#64748b] text-base max-w-xl mx-auto leading-relaxed">
             PharmaGuard analyzes 6 critical pharmacogenes that together cover
             the most clinically significant drug-gene interactions.
           </p>
@@ -141,7 +138,7 @@ export default function SupportedGenesDrugs() {
                   >
                     {gene.name}
                   </h3>
-                  <p className="text-slate-500 text-xs mt-0.5">
+                  <p className="text-[#64748b] text-xs mt-0.5">
                     {gene.fullName}
                   </p>
                 </div>
@@ -168,13 +165,13 @@ export default function SupportedGenesDrugs() {
                 </div>
               </div>
 
-              <p className="text-slate-400 text-xs mb-4 leading-relaxed">
+              <p className="text-[#64748b] text-xs mb-4 leading-relaxed">
                 {gene.role}
               </p>
 
               {/* Affected drugs */}
               <div className="mb-4">
-                <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-widest mb-2">
+                <p className="text-[#94a3b8] text-[10px] font-semibold uppercase tracking-widest mb-2">
                   Key Drugs
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -196,14 +193,14 @@ export default function SupportedGenesDrugs() {
 
               {/* Common variants */}
               <div>
-                <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-widest mb-2">
+                <p className="text-[#94a3b8] text-[10px] font-semibold uppercase tracking-widest mb-2">
                   Common Variants
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {gene.variants.map((v) => (
                     <span
                       key={v}
-                      className="text-[10px] font-mono bg-[#060b18]/50 border border-[#1e3a5f] text-slate-400 px-2 py-0.5 rounded"
+                      className="text-[10px] font-mono bg-white border border-[#dde8f4] text-[#0b1e40] px-2 py-0.5 rounded"
                     >
                       {v}
                     </span>
@@ -215,29 +212,29 @@ export default function SupportedGenesDrugs() {
         </div>
 
         {/* ── Drug-Gene Interaction Table ── */}
-        <div className="bg-[#0d1526] border border-[#1e3a5f] rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#1e3a5f]">
-            <h3 className="text-white font-bold text-lg">
+        <div className="bg-white border border-[#dde8f4] rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-[#dde8f4]">
+            <h3 className="text-[#0b1e40] font-bold text-lg">
               Drug–Gene Interactions
             </h3>
-            <p className="text-slate-500 text-xs mt-1">
+            <p className="text-[#64748b] text-xs mt-1">
               Key pharmacogenomic relationships analyzed by PharmaGuard
             </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#1e3a5f] bg-[#060b18]/40">
-                  <th className="text-left text-[10px] text-slate-600 font-semibold uppercase tracking-widest px-6 py-3">
+                <tr className="border-b border-[#dde8f4] bg-[#f0f5ff]">
+                  <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-6 py-3">
                     Drug
                   </th>
-                  <th className="text-left text-[10px] text-slate-600 font-semibold uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-4 py-3">
                     Gene
                   </th>
-                  <th className="text-left text-[10px] text-slate-600 font-semibold uppercase tracking-widest px-4 py-3 hidden sm:table-cell">
+                  <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-4 py-3 hidden sm:table-cell">
                     Mechanism
                   </th>
-                  <th className="text-left text-[10px] text-slate-600 font-semibold uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-[10px] text-[#94a3b8] font-semibold uppercase tracking-widest px-4 py-3">
                     Key Risk
                   </th>
                 </tr>
@@ -246,29 +243,27 @@ export default function SupportedGenesDrugs() {
                 {DRUG_GENE_MAP.map((row, i) => (
                   <tr
                     key={row.drug}
-                    className={`border-b border-[#1e3a5f]/50 hover:bg-[#111e35] transition-colors ${
+                    className={`border-b border-[#dde8f4] hover:bg-blue-50/60 transition-colors ${
                       i === DRUG_GENE_MAP.length - 1 ? "border-none" : ""
                     }`}
                   >
                     <td className="px-6 py-3.5">
-                      <span className="text-slate-200 text-sm font-semibold font-mono">
+                      <span className="text-[#0b1e40] text-sm font-semibold font-mono">
                         {row.drug}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="text-teal-400 text-xs font-bold font-mono bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded">
+                      <span className="text-[#1356be] text-xs font-bold font-mono bg-blue-50 border border-[#1356be]/25 px-2 py-0.5 rounded">
                         {row.gene}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 hidden sm:table-cell">
-                      <span className="text-slate-500 text-xs">
+                      <span className="text-[#64748b] text-xs">
                         {row.mechanism}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="text-amber-400/80 text-xs">
-                        {row.risk}
-                      </span>
+                      <span className="text-amber-700 text-xs">{row.risk}</span>
                     </td>
                   </tr>
                 ))}

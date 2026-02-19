@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const SUPPORTED_DRUGS = [
   { name: "CODEINE", gene: "CYP2D6", desc: "Pain reliever / opioid" },
-  { name: "WARFARIN", gene: "CYP2C9 / VKORC1", desc: "Blood thinner" },
+  { name: "WARFARIN", gene: "CYP2C9", desc: "Blood thinner" },
   { name: "CLOPIDOGREL", gene: "CYP2C19", desc: "Antiplatelet" },
   { name: "SIMVASTATIN", gene: "SLCO1B1", desc: "Cholesterol statin" },
   { name: "AZATHIOPRINE", gene: "TPMT", desc: "Immunosuppressant" },
@@ -13,46 +13,38 @@ const SUPPORTED_DRUGS = [
 export default function DrugInput({ drugs, onChange }) {
   const [customValue, setCustomValue] = useState("");
 
-  const toggleDrug = (name) => {
+  const toggleDrug = (name) =>
     onChange(
       drugs.includes(name) ? drugs.filter((d) => d !== name) : [...drugs, name],
     );
-  };
 
   const removeDrug = (name) => onChange(drugs.filter((d) => d !== name));
 
   const addCustom = () => {
     const trimmed = customValue.trim().toUpperCase();
-    if (trimmed && !drugs.includes(trimmed)) {
-      onChange([...drugs, trimmed]);
-    }
+    if (trimmed && !drugs.includes(trimmed)) onChange([...drugs, trimmed]);
     setCustomValue("");
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addCustom();
-    }
-    // Support comma-separated entry
-    if (e.key === ",") {
+    if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       addCustom();
     }
   };
 
   return (
-    <div className="bg-[#0d1526] border border-[#1e3a5f] rounded-2xl p-6">
+    <div className="bg-white border border-[#dde8f4] rounded-2xl p-6 shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/25 flex items-center justify-center text-teal-400 text-sm font-bold">
+        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-[#dde8f4] flex items-center justify-center text-[#1356be] text-sm font-bold">
           02
         </div>
         <div>
-          <h3 className="text-slate-100 font-semibold text-sm">
+          <h3 className="text-[#0b1e40] font-semibold text-sm">
             Select Drug(s)
           </h3>
-          <p className="text-slate-600 text-xs">
+          <p className="text-[#94a3b8] text-xs">
             Click to toggle • supports multiple
           </p>
         </div>
@@ -66,22 +58,18 @@ export default function DrugInput({ drugs, onChange }) {
             <button
               key={drug.name}
               onClick={() => toggleDrug(drug.name)}
-              className={`
-                relative p-3 rounded-xl border text-left transition-all duration-150 group
-                ${
-                  active
-                    ? "border-teal-400/50 bg-teal-500/10"
-                    : "border-[#1e3a5f] hover:border-slate-600 hover:bg-[#111e35]"
-                }
-              `}
+              className={`relative p-3 rounded-xl border text-left transition-all duration-150 group ${
+                active
+                  ? "border-[#1356be]/50 bg-blue-50"
+                  : "border-[#dde8f4] hover:border-[#1356be]/30 hover:bg-blue-50/50"
+              }`}
             >
-              {/* Checkmark */}
               {active && (
-                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-teal-500 flex items-center justify-center">
+                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#1356be] flex items-center justify-center">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
-                    className="w-2.5 h-2.5 text-[#060b18]"
+                    className="w-2.5 h-2.5 text-white"
                     stroke="currentColor"
                     strokeWidth="3"
                   >
@@ -94,15 +82,15 @@ export default function DrugInput({ drugs, onChange }) {
                 </div>
               )}
               <div
-                className={`text-xs font-bold mb-0.5 ${active ? "text-teal-300" : "text-slate-300"}`}
+                className={`text-xs font-bold mb-0.5 ${active ? "text-[#1356be]" : "text-[#0b1e40]"}`}
               >
                 {drug.name}
               </div>
-              <div className="text-[10px] text-slate-600 font-mono">
+              <div className="text-[10px] text-[#94a3b8] font-mono">
                 {drug.gene}
               </div>
               <div
-                className={`text-[10px] mt-0.5 ${active ? "text-teal-600" : "text-slate-700"}`}
+                className={`text-[10px] mt-0.5 ${active ? "text-[#1356be]/70" : "text-[#94a3b8]"}`}
               >
                 {drug.desc}
               </div>
@@ -113,41 +101,38 @@ export default function DrugInput({ drugs, onChange }) {
 
       {/* Custom drug input */}
       <div className="flex gap-2">
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            value={customValue}
-            onChange={(e) => setCustomValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Add other drug (e.g. METFORMIN)..."
-            className="w-full bg-[#111e35] border border-[#1e3a5f] focus:border-teal-500/50 text-slate-300 text-xs px-3 py-2.5 rounded-xl outline-none placeholder:text-slate-700 transition-colors"
-          />
-        </div>
+        <input
+          type="text"
+          value={customValue}
+          onChange={(e) => setCustomValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Add other drug (e.g. METFORMIN)..."
+          className="flex-1 bg-white border border-[#dde8f4] focus:border-[#1356be]/50 text-[#0b1e40] text-xs px-3 py-2.5 rounded-xl outline-none placeholder:text-[#94a3b8] transition-colors"
+        />
         <button
           onClick={addCustom}
           disabled={!customValue.trim()}
-          className="px-3 py-2.5 bg-[#111e35] border border-[#1e3a5f] hover:border-teal-500/40 hover:bg-teal-500/10 disabled:opacity-40 disabled:cursor-not-allowed text-slate-400 hover:text-teal-400 rounded-xl transition-all text-xs font-medium"
+          className="px-3 py-2.5 bg-blue-50 border border-[#dde8f4] hover:border-[#1356be]/40 hover:bg-blue-100 disabled:opacity-40 disabled:cursor-not-allowed text-[#1356be] rounded-xl transition-all text-xs font-semibold"
         >
           Add
         </button>
       </div>
 
-      {/* Selected tags row */}
       {drugs.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-[#1e3a5f]">
-          <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-widest mb-2">
+        <div className="mt-3 pt-3 border-t border-[#dde8f4]">
+          <p className="text-[#94a3b8] text-[10px] font-semibold uppercase tracking-widest mb-2">
             Selected ({drugs.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
             {drugs.map((d) => (
               <span
                 key={d}
-                className="inline-flex items-center gap-1.5 bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs px-2.5 py-1 rounded-full font-medium"
+                className="inline-flex items-center gap-1.5 bg-blue-50 border border-[#1356be]/25 text-[#1356be] text-xs px-2.5 py-1 rounded-full font-semibold"
               >
                 {d}
                 <button
                   onClick={() => removeDrug(d)}
-                  className="hover:text-red-400 transition-colors -mr-0.5 ml-0.5 w-3 h-3 flex items-center justify-center"
+                  className="hover:text-red-500 transition-colors w-3 h-3 flex items-center justify-center"
                   aria-label={`Remove ${d}`}
                 >
                   <svg

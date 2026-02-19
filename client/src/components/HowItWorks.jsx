@@ -57,7 +57,7 @@ export default function HowItWorks() {
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
           />
         </svg>
       ),
@@ -69,20 +69,17 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 px-4 relative">
-      {/* Section separator */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-[#1e3a5f] to-transparent" />
-
+    <section id="how-it-works" className="py-24 px-4 bg-[#f0f5ff]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-[#0d1526] border border-[#1e3a5f] text-slate-500 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase">
+          <div className="inline-flex items-center gap-2 bg-white border border-[#dde8f4] text-[#1356be] text-xs font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase shadow-sm">
             Process
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0b1e40] mb-4">
             How PharmaGuard Works
           </h2>
-          <p className="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="text-[#64748b] text-lg max-w-xl mx-auto leading-relaxed">
             From raw genomic data to clinically actionable insights in seconds.
           </p>
         </div>
@@ -90,31 +87,31 @@ export default function HowItWorks() {
         {/* Steps */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
           {/* Connecting line (desktop) */}
-          <div className="hidden md:block absolute top-14 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-px bg-linear-to-r from-[#1e3a5f] via-teal-500/30 to-[#1e3a5f]" />
+          <div className="hidden md:block absolute top-14 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-px bg-linear-to-r from-[#dde8f4] via-[#1356be]/30 to-[#dde8f4]" />
 
           {steps.map((step, i) => (
             <div
               key={i}
-              className="relative bg-[#0d1526] border border-[#1e3a5f] rounded-2xl p-7 hover:border-teal-500/30 hover:bg-[#111e35] transition-all duration-300 group"
+              className="relative bg-white border border-[#dde8f4] rounded-2xl p-7 hover:border-[#1356be]/40 hover:shadow-lg hover:shadow-blue-100/60 transition-all duration-300 group"
             >
               {/* Step number top-right */}
-              <span className="absolute top-5 right-5 text-[#1e3a5f] text-5xl font-black leading-none select-none group-hover:text-[#1e3a5f]/70 transition-colors">
+              <span className="absolute top-5 right-5 text-[#dde8f4] text-5xl font-black leading-none select-none group-hover:text-blue-100 transition-colors">
                 {step.number}
               </span>
 
               {/* Icon */}
-              <div className="w-14 h-14 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-6 group-hover:bg-teal-500/15 group-hover:border-teal-500/35 transition-all">
+              <div className="w-14 h-14 rounded-xl bg-blue-50 border border-[#dde8f4] flex items-center justify-center text-[#1356be] mb-6 group-hover:bg-blue-100 group-hover:border-[#1356be]/30 transition-all">
                 {step.icon}
               </div>
 
-              <h3 className="text-white font-bold text-xl mb-3">
+              <h3 className="text-[#0b1e40] font-bold text-xl mb-3">
                 {step.title}
               </h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-4">
+              <p className="text-[#64748b] text-sm leading-relaxed mb-4">
                 {step.description}
               </p>
 
-              <div className="inline-flex items-center gap-1.5 bg-[#060b18] border border-[#1e3a5f] text-teal-500 text-xs font-medium px-3 py-1.5 rounded-full">
+              <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-[#dde8f4] text-[#1356be] text-xs font-semibold px-3 py-1.5 rounded-full">
                 <svg
                   viewBox="0 0 24 24"
                   fill="currentColor"
@@ -133,8 +130,8 @@ export default function HowItWorks() {
         </div>
 
         {/* Risk Legend */}
-        <div className="mt-12 p-6 bg-[#0d1526] border border-[#1e3a5f] rounded-2xl">
-          <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest mb-4 text-center">
+        <div className="mt-12 p-6 bg-white border border-[#dde8f4] rounded-2xl shadow-sm">
+          <p className="text-[#64748b] text-xs font-semibold uppercase tracking-widest mb-4 text-center">
             Risk Classification
           </p>
           <div className="flex flex-wrap justify-center gap-4">
@@ -142,31 +139,31 @@ export default function HowItWorks() {
               {
                 label: "Safe",
                 color: "bg-emerald-500",
-                text: "text-emerald-400",
+                text: "text-emerald-600",
                 desc: "No dose adjustment needed",
               },
               {
                 label: "Adjust Dosage",
                 color: "bg-amber-500",
-                text: "text-amber-400",
+                text: "text-amber-600",
                 desc: "Modified dosing recommended",
               },
               {
                 label: "Toxic",
                 color: "bg-red-500",
-                text: "text-red-400",
+                text: "text-red-600",
                 desc: "Risk of serious toxicity",
               },
               {
                 label: "Ineffective",
                 color: "bg-orange-500",
-                text: "text-orange-400",
+                text: "text-orange-600",
                 desc: "Drug may not work",
               },
               {
                 label: "Unknown",
-                color: "bg-slate-500",
-                text: "text-slate-400",
+                color: "bg-slate-400",
+                text: "text-slate-500",
                 desc: "Insufficient data",
               },
             ].map((r) => (
@@ -176,7 +173,7 @@ export default function HowItWorks() {
                   <span className={`text-sm font-semibold ${r.text}`}>
                     {r.label}
                   </span>
-                  <span className="text-slate-600 text-xs ml-2 hidden sm:inline">
+                  <span className="text-[#94a3b8] text-xs ml-2 hidden sm:inline">
                     — {r.desc}
                   </span>
                 </div>

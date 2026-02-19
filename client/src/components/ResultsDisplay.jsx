@@ -3,13 +3,13 @@ import { useState } from "react";
 
 const RISK_CONFIG = {
   Safe: {
-    bg: "bg-emerald-500/8",
-    border: "border-emerald-500/30",
-    headerBg: "bg-emerald-500/10",
-    text: "text-emerald-400",
-    badge: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-    dot: "bg-emerald-400",
-    glow: "shadow-emerald-500/10",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    headerBg: "bg-emerald-50",
+    text: "text-emerald-700",
+    badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    dot: "bg-emerald-500",
+    glow: "shadow-emerald-100",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
         <path
@@ -21,13 +21,13 @@ const RISK_CONFIG = {
     ),
   },
   "Adjust Dosage": {
-    bg: "bg-amber-500/8",
-    border: "border-amber-500/30",
-    headerBg: "bg-amber-500/10",
-    text: "text-amber-400",
-    badge: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-    dot: "bg-amber-400",
-    glow: "shadow-amber-500/10",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    headerBg: "bg-amber-50",
+    text: "text-amber-700",
+    badge: "bg-amber-100 text-amber-700 border border-amber-200",
+    dot: "bg-amber-500",
+    glow: "shadow-amber-100",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
         <path
@@ -39,13 +39,13 @@ const RISK_CONFIG = {
     ),
   },
   Toxic: {
-    bg: "bg-red-500/8",
-    border: "border-red-500/30",
-    headerBg: "bg-red-500/10",
-    text: "text-red-400",
-    badge: "bg-red-500/20 text-red-300 border border-red-500/30",
-    dot: "bg-red-400",
-    glow: "shadow-red-500/10",
+    bg: "bg-red-50",
+    border: "border-red-200",
+    headerBg: "bg-red-50",
+    text: "text-red-700",
+    badge: "bg-red-100 text-red-700 border border-red-200",
+    dot: "bg-red-500",
+    glow: "shadow-red-100",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
         <path
@@ -57,13 +57,13 @@ const RISK_CONFIG = {
     ),
   },
   Ineffective: {
-    bg: "bg-orange-500/8",
-    border: "border-orange-500/30",
-    headerBg: "bg-orange-500/10",
-    text: "text-orange-400",
-    badge: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
-    dot: "bg-orange-400",
-    glow: "shadow-orange-500/10",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    headerBg: "bg-orange-50",
+    text: "text-orange-700",
+    badge: "bg-orange-100 text-orange-700 border border-orange-200",
+    dot: "bg-orange-500",
+    glow: "shadow-orange-100",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
         <path
@@ -75,13 +75,13 @@ const RISK_CONFIG = {
     ),
   },
   Unknown: {
-    bg: "bg-slate-500/8",
-    border: "border-slate-500/30",
-    headerBg: "bg-slate-500/10",
-    text: "text-slate-400",
-    badge: "bg-slate-500/20 text-slate-300 border border-slate-600/30",
+    bg: "bg-slate-50",
+    border: "border-slate-200",
+    headerBg: "bg-slate-50",
+    text: "text-slate-600",
+    badge: "bg-slate-100 text-slate-600 border border-slate-200",
     dot: "bg-slate-400",
-    glow: "shadow-slate-500/10",
+    glow: "shadow-slate-100",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
         <path
@@ -146,8 +146,8 @@ export default function ResultsDisplay({ results }) {
 
   if (analysisResults.length === 0) {
     return (
-      <div className="mt-8 p-6 bg-[#0d1526] border border-[#1e3a5f] rounded-2xl text-center">
-        <p className="text-slate-500 text-sm">No results to display.</p>
+      <div className="mt-8 p-6 bg-[#f0f5ff] border border-[#dde8f4] rounded-2xl text-center">
+        <p className="text-[#64748b] text-sm">No results to display.</p>
       </div>
     );
   }
@@ -157,16 +157,16 @@ export default function ResultsDisplay({ results }) {
       {/* ── Header row ── */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-white font-extrabold text-2xl">
+          <h3 className="text-[#0b1e40] font-extrabold text-2xl">
             Analysis Results
           </h3>
           {patientId && (
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-[#64748b] text-sm mt-1">
               Patient ID:{" "}
-              <span className="font-mono text-slate-400">{patientId}</span>
+              <span className="font-mono text-[#0b1e40]">{patientId}</span>
             </p>
           )}
-          <p className="text-slate-600 text-xs mt-0.5">
+          <p className="text-[#94a3b8] text-xs mt-0.5">
             {analysisResults.length} drug
             {analysisResults.length !== 1 ? "s" : ""} analyzed
           </p>
@@ -174,14 +174,14 @@ export default function ResultsDisplay({ results }) {
         <div className="flex gap-2">
           <button
             onClick={handleCopy}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#0d1526] hover:bg-[#111e35] border border-[#1e3a5f] hover:border-teal-500/30 text-slate-400 hover:text-teal-400 rounded-xl transition-all text-xs font-semibold"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-blue-50 border border-[#dde8f4] hover:border-[#1356be]/30 text-[#64748b] hover:text-[#1356be] rounded-xl transition-all text-xs font-semibold"
           >
             {copied ? (
               <>
                 <svg
                   viewBox="0 0 24 24"
                   fill="currentColor"
-                  className="w-3.5 h-3.5 text-teal-400"
+                  className="w-3.5 h-3.5 text-emerald-600"
                 >
                   <path
                     fillRule="evenodd"
@@ -189,7 +189,7 @@ export default function ResultsDisplay({ results }) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="text-teal-400">Copied!</span>
+                <span className="text-emerald-600">Copied!</span>
               </>
             ) : (
               <>
@@ -212,7 +212,7 @@ export default function ResultsDisplay({ results }) {
           </button>
           <button
             onClick={handleDownload}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 hover:border-teal-500/50 text-teal-400 rounded-xl transition-all text-xs font-semibold"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#1356be]/10 hover:bg-[#1356be]/20 border border-[#1356be]/30 hover:border-[#1356be]/50 text-[#1356be] rounded-xl transition-all text-xs font-semibold"
           >
             <svg
               viewBox="0 0 24 24"
@@ -242,7 +242,7 @@ export default function ResultsDisplay({ results }) {
             <div className={`text-3xl font-extrabold ${config.text}`}>
               {riskCounts[risk] || 0}
             </div>
-            <div className="text-slate-500 text-[10px] mt-0.5 font-medium leading-tight">
+            <div className="text-[#64748b] text-[10px] mt-0.5 font-medium leading-tight">
               {risk}
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function ResultsDisplay({ results }) {
                   </span>
 
                   {/* Drug name */}
-                  <span className="text-white font-bold text-base">
+                  <span className="text-[#0b1e40] font-bold text-base">
                     {result.drug || "—"}
                   </span>
 
@@ -295,7 +295,7 @@ export default function ResultsDisplay({ results }) {
 
                   {/* Phenotype pill */}
                   {result.phenotype && (
-                    <span className="hidden sm:inline text-slate-400 text-xs border border-[#1e3a5f] bg-[#060b18]/50 px-2 py-0.5 rounded-md">
+                    <span className="hidden sm:inline text-[#64748b] text-xs border border-[#dde8f4] bg-[#f0f5ff] px-2 py-0.5 rounded-md">
                       {result.phenotype}
                     </span>
                   )}
@@ -319,18 +319,18 @@ export default function ResultsDisplay({ results }) {
 
               {/* Expandable content */}
               {isOpen && (
-                <div className="px-5 pb-5 pt-4 space-y-4 border-t border-white/5">
+                <div className="px-5 pb-5 pt-4 space-y-4 border-t border-[#dde8f4]">
                   {/* Variants */}
                   {variantList.length > 0 && (
                     <div>
-                      <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-widest mb-2">
+                      <p className="text-[#94a3b8] text-[10px] font-semibold uppercase tracking-widest mb-2">
                         Variants Detected
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {variantList.map((v, vi) => (
                           <span
                             key={vi}
-                            className="text-xs font-mono bg-[#111e35] border border-[#1e3a5f] text-slate-300 px-2.5 py-1 rounded-lg"
+                            className="text-xs font-mono bg-[#f0f5ff] border border-[#dde8f4] text-[#0b1e40] px-2.5 py-1 rounded-lg"
                           >
                             {v}
                           </span>
@@ -342,10 +342,10 @@ export default function ResultsDisplay({ results }) {
                   {/* Phenotype (mobile) */}
                   {result.phenotype && (
                     <div className="sm:hidden">
-                      <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-widest mb-1">
+                      <p className="text-[#94a3b8] text-[10px] font-semibold uppercase tracking-widest mb-1">
                         Phenotype
                       </p>
-                      <p className="text-slate-200 text-sm">
+                      <p className="text-[#0b1e40] text-sm">
                         {result.phenotype}
                       </p>
                     </div>
@@ -354,11 +354,11 @@ export default function ResultsDisplay({ results }) {
                   {/* Explanation */}
                   {result.explanation && (
                     <div>
-                      <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-widest mb-2">
+                      <p className="text-[#94a3b8] text-[10px] font-semibold uppercase tracking-widest mb-2">
                         Clinical Explanation
                       </p>
-                      <div className="bg-[#060b18]/60 border border-white/5 rounded-xl p-4">
-                        <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+                      <div className="bg-[#f0f5ff] border border-[#dde8f4] rounded-xl p-4">
+                        <p className="text-[#0b1e40] text-sm leading-relaxed whitespace-pre-wrap">
                           {result.explanation}
                         </p>
                       </div>
@@ -368,7 +368,7 @@ export default function ResultsDisplay({ results }) {
                   {/* Recommendation */}
                   {result.recommendation && (
                     <div>
-                      <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-widest mb-2">
+                      <p className="text-[#94a3b8] text-[10px] font-semibold uppercase tracking-widest mb-2">
                         CPIC Recommendation
                       </p>
                       <div
@@ -390,9 +390,9 @@ export default function ResultsDisplay({ results }) {
 
                   {/* Activity score / additional fields */}
                   {result.activity_score != null && (
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs text-[#64748b]">
                       <span className="font-medium">Activity Score:</span>
-                      <span className="font-mono text-slate-300">
+                      <span className="font-mono text-[#0b1e40]">
                         {result.activity_score}
                       </span>
                     </div>
@@ -405,11 +405,11 @@ export default function ResultsDisplay({ results }) {
       </div>
 
       {/* Disclaimer */}
-      <div className="mt-6 p-4 bg-[#0d1526] border border-[#1e3a5f] rounded-xl flex gap-3">
+      <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex gap-3">
         <svg
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="w-4 h-4 text-slate-600 shrink-0 mt-0.5"
+          className="w-4 h-4 text-amber-500 shrink-0 mt-0.5"
         >
           <path
             fillRule="evenodd"
@@ -417,8 +417,8 @@ export default function ResultsDisplay({ results }) {
             clipRule="evenodd"
           />
         </svg>
-        <p className="text-slate-600 text-xs leading-relaxed">
-          <span className="text-slate-500 font-semibold">
+        <p className="text-amber-800 text-xs leading-relaxed">
+          <span className="text-amber-700 font-semibold">
             Clinical Disclaimer:
           </span>{" "}
           This analysis is intended for research and educational purposes only.

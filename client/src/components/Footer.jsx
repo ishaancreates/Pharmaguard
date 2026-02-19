@@ -27,20 +27,17 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative border-t border-[#1e3a5f] bg-[#060b18]">
-      {/* Top glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-px bg-linear-to-r from-transparent via-teal-500/30 to-transparent" />
-
+    <footer className="relative bg-[#0b1e40]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[#1356be] flex items-center justify-center shrink-0">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="w-4.5 h-4.5 text-[#060b18]"
+                  className="w-4.5 h-4.5 text-white"
                   stroke="currentColor"
                   strokeWidth="2.5"
                 >
@@ -52,15 +49,15 @@ export default function Footer() {
                 </svg>
               </div>
               <span className="text-lg font-bold text-white">
-                Pharma<span className="text-teal-400">Guard</span>
+                Pharma<span className="text-[#5a9cf5]">Guard</span>
               </span>
             </div>
-            <p className="text-slate-500 text-sm leading-relaxed mb-5">
+            <p className="text-white/50 text-sm leading-relaxed mb-5">
               AI-powered pharmacogenomic risk analysis. Helping clinicians and
               researchers understand drug-gene interactions.
             </p>
             {/* Disclaimer badge */}
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-500/80 text-[10px] font-semibold px-3 py-1.5 rounded-full">
+            <div className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 text-amber-300/80 text-[10px] font-semibold px-3 py-1.5 rounded-full">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
                 <path
                   fillRule="evenodd"
@@ -75,7 +72,7 @@ export default function Footer() {
           {/* Links */}
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
-              <h4 className="text-slate-300 font-semibold text-sm mb-4">
+              <h4 className="text-white/70 font-semibold text-sm mb-4 uppercase tracking-widest text-xs">
                 {category}
               </h4>
               <ul className="space-y-2.5">
@@ -91,7 +88,7 @@ export default function Footer() {
                           ? "noopener noreferrer"
                           : undefined
                       }
-                      className="text-slate-500 hover:text-teal-400 text-sm transition-colors inline-flex items-center gap-1 group"
+                      className="text-white/40 hover:text-[#5a9cf5] text-sm transition-colors inline-flex items-center gap-1 group"
                     >
                       {item.label}
                       {item.href.startsWith("http") && (
@@ -118,11 +115,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-[#1e3a5f] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-slate-600 text-xs">
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-white/30 text-xs">
             © {currentYear} PharmaGuard. Built for RIFT Hackathon.
           </p>
-          <p className="text-slate-700 text-xs text-center sm:text-right max-w-md leading-relaxed">
+          <p className="text-white/20 text-xs text-center sm:text-right max-w-md leading-relaxed">
             Not a substitute for professional medical advice. All analyses are
             for research and educational purposes only.
           </p>

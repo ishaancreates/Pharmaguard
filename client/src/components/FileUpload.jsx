@@ -26,33 +26,30 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
     e.preventDefault();
     setDragging(true);
   };
-
   const handleDragLeave = (e) => {
     e.preventDefault();
     setDragging(false);
   };
-
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     if (selected) onFileSelect(selected);
-    // Reset so same file can be re-selected
     e.target.value = "";
   };
 
   const sizePct = file ? Math.min((file.size / MAX_FILE_SIZE) * 100, 100) : 0;
 
   return (
-    <div className="bg-[#0d1526] border border-[#1e3a5f] rounded-2xl p-6">
+    <div className="bg-white border border-[#dde8f4] rounded-2xl p-6 shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/25 flex items-center justify-center text-teal-400 text-sm font-bold">
+        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-[#dde8f4] flex items-center justify-center text-[#1356be] text-sm font-bold">
           01
         </div>
         <div>
-          <h3 className="text-slate-100 font-semibold text-sm">
+          <h3 className="text-[#0b1e40] font-semibold text-sm">
             Upload VCF File
           </h3>
-          <p className="text-slate-600 text-xs">Variant Call Format v4.2</p>
+          <p className="text-[#94a3b8] text-xs">Variant Call Format v4.2</p>
         </div>
       </div>
 
@@ -68,19 +65,18 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
             transition-all duration-200
             ${
               dragging
-                ? "border-teal-400 bg-teal-400/8 scale-[1.01]"
-                : "border-[#1e3a5f] hover:border-teal-500/40 hover:bg-[#111e35]"
+                ? "border-[#1356be] bg-blue-50 scale-[1.01]"
+                : "border-[#dde8f4] hover:border-[#1356be]/40 hover:bg-blue-50/50"
             }
           `}
         >
-          {/* Upload icon */}
           <div
-            className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-colors ${dragging ? "bg-teal-500/20" : "bg-[#111e35]"}`}
+            className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-colors ${dragging ? "bg-blue-100" : "bg-blue-50"}`}
           >
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              className={`w-7 h-7 transition-colors ${dragging ? "text-teal-400" : "text-slate-600"}`}
+              className={`w-7 h-7 transition-colors ${dragging ? "text-[#1356be]" : "text-[#94a3b8]"}`}
               stroke="currentColor"
               strokeWidth="1.5"
             >
@@ -91,31 +87,20 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
               />
             </svg>
           </div>
-
-          <p className="text-slate-300 font-semibold text-sm mb-1">
+          <p className="text-[#0b1e40] font-semibold text-sm mb-1">
             {dragging ? "Release to upload" : "Drag & drop your VCF file here"}
           </p>
-          <p className="text-slate-600 text-xs mb-4">
+          <p className="text-[#94a3b8] text-xs mb-4">
             or click to browse files
           </p>
-
           <div className="flex items-center justify-center gap-3">
-            <span className="inline-flex items-center gap-1.5 text-xs bg-[#060b18] border border-[#1e3a5f] text-slate-500 px-3 py-1 rounded-full">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
-                <path
-                  fillRule="evenodd"
-                  d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z"
-                  clipRule="evenodd"
-                />
-                <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
-              </svg>
+            <span className="inline-flex items-center gap-1.5 text-xs bg-blue-50 border border-[#dde8f4] text-[#64748b] px-3 py-1 rounded-full">
               .vcf only
             </span>
-            <span className="text-xs bg-[#060b18] border border-[#1e3a5f] text-slate-500 px-3 py-1 rounded-full">
+            <span className="text-xs bg-blue-50 border border-[#dde8f4] text-[#64748b] px-3 py-1 rounded-full">
               Max 5 MB
             </span>
           </div>
-
           <input
             ref={inputRef}
             type="file"
@@ -125,15 +110,14 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
           />
         </div>
       ) : (
-        <div className="border border-teal-500/30 bg-teal-500/5 rounded-xl p-4 space-y-3">
-          {/* File info row */}
+        <div className="border border-emerald-200 bg-emerald-50/60 rounded-xl p-4 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 shrink-0 bg-teal-500/20 rounded-xl border border-teal-500/30 flex items-center justify-center">
+              <div className="w-10 h-10 shrink-0 bg-emerald-100 rounded-xl border border-emerald-200 flex items-center justify-center">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="w-5 h-5 text-teal-400"
+                  className="w-5 h-5 text-emerald-600"
                   stroke="currentColor"
                   strokeWidth="1.5"
                 >
@@ -146,19 +130,19 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
               </div>
               <div className="min-w-0">
                 <p
-                  className="text-slate-200 text-sm font-semibold truncate"
+                  className="text-[#0b1e40] text-sm font-semibold truncate"
                   title={file.name}
                 >
                   {file.name}
                 </p>
-                <p className="text-slate-500 text-xs">
+                <p className="text-[#64748b] text-xs">
                   {formatFileSize(file.size)}
                 </p>
               </div>
             </div>
             <button
               onClick={onClear}
-              className="shrink-0 w-7 h-7 rounded-lg hover:bg-red-500/15 text-slate-600 hover:text-red-400 transition-all flex items-center justify-center"
+              className="shrink-0 w-7 h-7 rounded-lg hover:bg-red-100 text-[#94a3b8] hover:text-red-500 transition-all flex items-center justify-center"
               title="Remove file"
             >
               <svg
@@ -176,23 +160,19 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
               </svg>
             </button>
           </div>
-
-          {/* Size bar */}
           <div>
-            <div className="flex justify-between text-[10px] text-slate-600 mb-1">
+            <div className="flex justify-between text-[10px] text-[#94a3b8] mb-1">
               <span>File size</span>
               <span>{formatFileSize(file.size)} / 5 MB</span>
             </div>
-            <div className="h-1 bg-[#111e35] rounded-full overflow-hidden">
+            <div className="h-1 bg-emerald-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-teal-500 rounded-full transition-all"
+                className="h-full bg-emerald-500 rounded-full transition-all"
                 style={{ width: `${sizePct}%` }}
               />
             </div>
           </div>
-
-          {/* Validated badge */}
-          <div className="flex items-center gap-2 text-xs text-teal-400 font-medium">
+          <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold">
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
               <path
                 fillRule="evenodd"
@@ -205,9 +185,8 @@ export default function FileUpload({ file, onFileSelect, error, onClear }) {
         </div>
       )}
 
-      {/* Error message */}
       {error && (
-        <div className="mt-3 flex items-start gap-2.5 p-3 bg-red-500/10 border border-red-500/25 rounded-xl text-red-400 text-xs">
+        <div className="mt-3 flex items-start gap-2.5 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs">
           <svg
             viewBox="0 0 24 24"
             fill="currentColor"
