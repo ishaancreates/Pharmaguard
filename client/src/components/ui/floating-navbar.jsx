@@ -27,7 +27,7 @@ export const FloatingNav = ({
         if (direction < 0) {
           setVisible(true);
         } else {
-          setVisible(true);
+          setVisible(false);
         }
       }
     }

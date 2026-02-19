@@ -6,6 +6,7 @@ import {
   IconHome,
   IconDna,
   IconFlask,
+  IconTestPipe,
   IconInfoCircle,
   IconRocket,
   IconMessageCircle,
@@ -35,13 +36,18 @@ const navItems = [
   {
     name: "IVF",
     link: "/ivf",
-    icon: <IconHome className="h-4 w-4" />, // Replace with an appropriate IVF icon
+    icon: <IconTestPipe className="h-4 w-4" />, // Replace with an appropriate IVF icon
   },
 
   {
     name: "Community",
     link: "/community",
     icon: <IconMessageCircle className="h-4 w-4" />,
+  },
+  {
+    name: "Pill Scanner",
+    link: "/pill-scanner",
+    icon: <IconFlask className="h-4 w-4" />,
   },
 ];
 
