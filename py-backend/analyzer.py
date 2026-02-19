@@ -188,7 +188,7 @@ class DrugResult:
                 "mechanism": self.mechanism,
                 "variant_citations": [
                     f"{v.gene} {v.star_allele} ({v.rsid}, {v.chrom}:{v.pos} "
-                    f"{v.ref}>{",".join(v.alt)}, GT {v.genotype})"
+                    f"{v.ref}>{','.join(v.alt)}, GT {v.genotype})"
                     for v in self.variants_cited if v.is_variant
                 ],
                 "model_used": os.environ.get("LLM_MODEL", "template-based") if self.llm_used else "template-based",
