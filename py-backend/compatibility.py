@@ -1,0 +1,183 @@
+"""
+Genetic Compatibility Calculator
+================================
+Calculates Mendelian inheritance probabilities for pharmacogenomic variants
+based on two parents' genetic profiles.
+"""
+
+from typing import Dict, List, Tuple
+from collections import Counter
+from pgx_knowledgebase import ALLELE_FUNCTION, KNOWN_GENES, _function_score, infer_phenotype, EXTENSIVE, INTERMEDIATE, POOR, ULTRA_RAPID, INDETERMINATE
+
+def extract_alleles(gene_data: dict) -> List[str]:
+    """
+    Extract the two alleles for a gene.
+    Supports:
+    1. "diplotype": "*1/*4" (from stored profile)
+    2. "detectedAlleles": [...] (from fresh analysis)
+    """
+    # 1. Try direct diplotype string
+    dip = gene_data.get("diplotype")
+    if dip and "/" in dip:
+        return dip.split("/")
+
+    # 2. Fallback to parsing detected variants
+    # detected_alleles comes from AnalysisResult.genes[i].detected_alleles (list of dicts)
+    
+    # We need to handle:
+    # 1. Homozygous variant (*4/*4) -> variant dict has genotype '1/1'
+    # 2. Heterozygous variant (*1/*4) -> variant dict has genotype '0/1'
+    # 3. Compound heterozygous (*4/*5) -> two variant dicts, each '0/1'
+    
+    alleles = []
+    
+    detected_alleles = gene_data.get("detectedAlleles", gene_data.get("detected_alleles", []))
+    
+    for v in detected_alleles:
+        if not v.get("isVariant", v.get("is_variant", False)):
+            continue
+            
+        star = v.get("starAllele", v.get("star_allele"))
+        if not star:
+            continue
+            
+        genotype = v.get("genotype", "0/0")
+        
+        if genotype in ("1/1", "1|1"):
+            # Homozygous for this allele
+            alleles.append(star)
+            alleles.append(star)
+        elif genotype in ("0/1", "0|1", "1|0", "1/0"):
+            # Heterozygous
+            alleles.append(star)
+            
+    # Fill remaining with *1 (Wild Type)
+    while len(alleles) < 2:
+        alleles.append("*1")
+        
+    # If we have more than 2 (complex case), take the first two found variants/wildtypes
+    return alleles[:2]
+
+def get_phenotype_for_diplotype(gene: str, allele1: str, allele2: str) -> str:
+    """
+    Calculate phenotype for a specific pair of alleles using KB logic.
+    """
+    # Re-use infer_phenotype logic but adapting input format
+    # infer_phenotype expects list of detected allele dicts
+    
+    # We can manually calculate score to avoid reconstructing complex dicts
+    gene_funcs = ALLELE_FUNCTION.get(gene, {})
+    
+    # Get function for each allele
+    func1 = gene_funcs.get(allele1, "normal")
+    func2 = gene_funcs.get(allele2, "normal")
+    
+    score1 = _function_score(func1)
+    score2 = _function_score(func2)
+    
+    total = score1 + score2
+    
+    if total >= 2.5:
+        return ULTRA_RAPID
+    elif total >= 1.5:
+        return EXTENSIVE
+    elif total >= 1.0:
+        return INTERMEDIATE
+    else:
+        return POOR
+
+def calculate_inheritance(parent1_genes: List[dict], parent2_genes: List[dict]) -> Dict[str, dict]:
+    """
+    Calculate inheritance probabilities for all known genes.
+    
+    parent_genes: List of gene objects from AnalysisResult (or dicts)
+    """
+    # Convert lists to dicts for easy lookup
+    p1_map = {g.get("gene"): g.get("detectedAlleles", g.get("detected_alleles", [])) for g in parent1_genes}
+    p2_map = {g.get("gene"): g.get("detectedAlleles", g.get("detected_alleles", [])) for g in parent2_genes}
+    
+    results = {}
+    
+    for gene in KNOWN_GENES:
+        # Get alleles for both parents
+        # If gene not in analysis, assume *1/*1 (User might not have data, but we proceed with WT assumption for now)
+        p1_alleles = extract_alleles(p1_map.get(gene, []))
+        p2_alleles = extract_alleles(p2_map.get(gene, []))
+        
+        # Punnett Square (2x2)
+        # Mother (p1) x Father (p2)
+        # Combinations:
+        # 1. p1[0] - p2[0]
+        # 2. p1[0] - p2[1]
+        # 3. p1[1] - p2[0]
+        # 4. p1[1] - p2[1]
+        
+        offspring_genotypes = [
+            tuple(sorted((p1_alleles[0], p2_alleles[0]))),
+            tuple(sorted((p1_alleles[0], p2_alleles[1]))),
+            tuple(sorted((p1_alleles[1], p2_alleles[0]))),
+            tuple(sorted((p1_alleles[1], p2_alleles[1])))
+        ]
+        
+        # Calculate outcomes
+        # We want to aggregate by Diplotype and Phenotype
+        
+        outcome_stats = []
+        
+        for a1, a2 in offspring_genotypes:
+             phenotype = get_phenotype_for_diplotype(gene, a1, a2)
+             outcome_stats.append({
+                 "diplotype": f"{a1}/{a2}",
+                 "phenotype": phenotype,
+                 "risk": "normal" if phenotype == EXTENSIVE else "caution" if phenotype == INTERMEDIATE else "danger" if phenotype == POOR else "warning" # URM is warning
+             })
+
+        # Aggregate counts
+        # Identify unique outcomes and their probabilities (each is 25%)
+        # But we group by (Diplotype, Phenotype)
+        
+        grouped = {}
+        for outcome in outcome_stats:
+            key = (outcome["diplotype"], outcome["phenotype"], outcome["risk"])
+            grouped[key] = grouped.get(key, 0) + 0.25
+            
+        # Format for frontend
+        child_risks = []
+        for (dip, phen, risk), prob in grouped.items():
+            child_risks.append({
+                "diplotype": dip,
+                "phenotype": phen,
+                "probability": prob,
+                "risk": risk
+            })
+            
+        # Sort by probability desc
+        child_risks.sort(key=lambda x: x["probability"], reverse=True)
+        
+        results[gene] = {
+            "parent1_diplotype": f"{p1_alleles[0]}/{p1_alleles[1]}",
+            "parent2_diplotype": f"{p2_alleles[0]}/{p2_alleles[1]}",
+            "child_risks": child_risks
+        }
+        
+    return results
+
+if __name__ == "__main__":
+    # Test Case
+    print("Testing Compatibility Calculator...")
+    
+    # Mock Parent 1: CYP2D6 *1/*4 (IM)
+    p1_data = [{
+        "gene": "CYP2D6",
+        "detectedAlleles": [{"starAllele": "*4", "genotype": "0/1", "isVariant": True}]
+    }]
+    
+    # Mock Parent 2: CYP2D6 *4/*4 (PM)
+    p2_data = [{
+        "gene": "CYP2D6",
+        "detectedAlleles": [{"starAllele": "*4", "genotype": "1/1", "isVariant": True}]
+    }]
+    
+    res = calculate_inheritance(p1_data, p2_data)
+    import json
+    print(json.dumps(res, indent=2))

@@ -28,6 +28,8 @@ from database import init_db, db
 # Import mock models helper logic if needed, but we mostly use raw dicts with Mongo
 # from models import ... 
 
+# from models import ... 
+from compatibility import calculate_inheritance
 from matcher import find_matches
 
 app = Flask(__name__)
@@ -156,6 +158,128 @@ def analyze_endpoint():
 # In production, use migrations or startup script
 with app.app_context():
     init_db()
+
+
+# ---------------------------------------------------------------------------
+# Genetic Compatibility Routes
+# ---------------------------------------------------------------------------
+
+@app.route("/api/couple-analysis", methods=["POST"])
+def couple_analysis():
+    """
+    Analyze two profiles (User + Partner) for genetic compatibility.
+    
+    Inputs:
+    - partner_vcf: File upload (required)
+    - user_vcf: File upload (optional)
+    - user_id: ID of existing user (optional, if user_vcf not provided)
+    
+    Returns:
+    - Inheritance analysis for all genes
+    - Combined profiles
+    """
+    # 1. Handle Partner VCF (Must be uploaded)
+    if "partner_vcf" not in request.files:
+        return jsonify({"error": "Missing 'partner_vcf'"}), 400
+        
+    partner_file = request.files["partner_vcf"]
+    
+    # Parse Partner
+    try:
+        filename = partner_file.filename.lower() if partner_file.filename else "partner_upload.vcf"
+        file_data = partner_file.read()
+        
+        if filename.endswith(".gz") or filename.endswith(".bgz"):
+             # Handle compressed (save temp)
+             suffix = ".vcf.bgz" if filename.endswith(".bgz") else ".vcf.gz"
+             with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+                 tmp.write(file_data)
+                 tmp_path = tmp.name
+             partner_vcf_obj = parse_vcf(tmp_path)
+             try:
+                 os.unlink(tmp_path)
+             except:
+                 pass
+        else:
+             partner_vcf_obj = parse_vcf_bytes(file_data, filename)
+             
+        # Analyze Partner (we don't need drugs, just genes)
+        partner_result = analyze(partner_vcf_obj, [])
+        partner_genes = [g.to_dict() for g in partner_result.genes]
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Partner VCF processing failed: {str(e)}"}), 400
+
+    # 2. Handle User Data (Upload OR Database)
+    user_genes = []
+    
+    if "user_vcf" in request.files and request.files["user_vcf"].filename:
+         # Process User VCF Upload
+         u_file = request.files["user_vcf"]
+         try:
+            filename = u_file.filename.lower()
+            file_data = u_file.read()
+            
+            if filename.endswith(".gz") or filename.endswith(".bgz"):
+                 suffix = ".vcf.bgz" if filename.endswith(".bgz") else ".vcf.gz"
+                 with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+                     tmp.write(file_data)
+                     tmp_path = tmp.name
+                 user_vcf_obj = parse_vcf(tmp_path)
+                 try:
+                     os.unlink(tmp_path)
+                 except:
+                     pass
+            else:
+                 user_vcf_obj = parse_vcf_bytes(file_data, filename)
+            
+            user_result = analyze(user_vcf_obj, [])
+            user_genes = [g.to_dict() for g in user_result.genes]
+            
+         except Exception as e:
+            return jsonify({"error": f"User VCF processing failed: {str(e)}"}), 400
+            
+    elif request.form.get("user_id"):
+         # Fetch from DB
+         uid_raw = request.form.get("user_id")
+         try:
+             # Try objectid
+             uid = ObjectId(uid_raw)
+             query = {"user_id": uid}
+         except:
+             query = {"user_id": uid_raw}
+
+         profiles = list(db.profiles.find(query))
+         
+         # Fallback for "me" alias
+         if not profiles and uid_raw == "me":
+              u = db.users.find_one({"username": "Ishaan_Genetics"})
+              if u:
+                  profiles = list(db.profiles.find({"user_id": u["_id"]}))
+
+         if not profiles:
+              # Continue with warning or return error?
+              # If user not found, we can't do compatibility.
+              # But maybe we just return partner analysis?
+              return jsonify({"error": "User profile not found. Please upload VCF."}), 404
+              
+         user_genes = profiles # extract_alleles handles "diplotype" key
+         
+    else:
+         return jsonify({"error": "Missing user data (user_vcf or user_id)"}), 400
+
+    # 3. Calculate Inheritance
+    try:
+        compatibility_report = calculate_inheritance(user_genes, partner_genes)
+        return jsonify({
+            "compatibility": compatibility_report,
+            "user_profile": user_genes,
+            "partner_profile": partner_genes
+        })
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Compatibility calculation failed: {str(e)}"}), 500
 
 
 # ---------------------------------------------------------------------------
