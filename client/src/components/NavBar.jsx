@@ -34,12 +34,7 @@ const navItems = [
   //  icon: <IconFlask className="h-4 w-4" />,
   //},
   {
-    name: "Genes & Drugs",
-    link: "/#genes",
-    icon: <IconDna className="h-4 w-4" />,
-  },
-  {
-    name: "IVF",
+    name: "Family Genetics",
     link: "/ivf",
     icon: <IconTestPipe className="h-4 w-4" />, // Replace with an appropriate IVF icon
   },
