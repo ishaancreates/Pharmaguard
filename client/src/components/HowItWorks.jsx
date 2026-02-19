@@ -69,7 +69,7 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 px-4 bg-gradient-to-b from-[#f0f7f4] to-white">
+    <section id="how-it-works" className="py-24 px-4 bg-gradient-to-b from-[#ffffff] to-white">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">

@@ -48,10 +48,7 @@ const navItems = [
 const logo = (
   <a href="#" className="flex items-center gap-2.5 shrink-0">
     <img src="/3.svg" alt="PharmaGuard" className="w-20 h-auto" />
-
   </a>
-
-
 );
 
 const ctaButton = (
@@ -68,13 +65,12 @@ export default function NavBar() {
   return (
     <>
       {/* ── Static top navbar ── */}
-      <header className="w-full  z-40">
+      <header className="w-full bg-transparent z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 bg-transparent">
             {/* Logo */}
             <a href="#" className="flex items-center gap-2.5 shrink-0">
               <img src="/3.svg" alt="PharmaGuard" className="w-40 h-auto" />
-
             </a>
 
             {/* Desktop links */}
