@@ -94,7 +94,7 @@ export default function TwinFinder({ profile }) {
               </div>
               <button
                 onClick={() => handleConnect(match.user_id, match.username)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all text-[#a9bb9d] hover:text-white hover:bg-[#a9bb9d] border border-[#a9bb9d]/30 hover:border-[#a9bb9d] cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg transition-all text-white bg-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-500/20 cursor-pointer"
               >
                 Connect
               </button>

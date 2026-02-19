@@ -34,6 +34,7 @@ import {
 import { parseVCFFile } from "@/utils/vcfValidator";
 import { useAuth } from "@/context/AuthContext";
 import NavBar from "@/components/NavBar";
+import { createWorker } from "tesseract.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -241,23 +242,20 @@ export default function PillScannerPage() {
     if (vcfInputRef.current) vcfInputRef.current.value = "";
   }, []);
 
-  // ── 2. Check backend OCR health ───────────────────────────────────────────
+  // ── 2. Check backend OCR health (non-blocking — browser fallback exists) ──
   const checkOcrBackend = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/health`, { method: "GET" });
       if (res.ok) {
-        setOcrReady(true);
-        console.log("[PillScanner] Backend OCR ready ✓");
+        console.log("[PillScanner] Backend OCR ready");
       } else {
-        throw new Error(`Backend health check returned ${res.status}`);
+        console.warn("[PillScanner] Backend health check returned", res.status);
       }
     } catch (err) {
-      console.error("[PillScanner] Backend OCR not reachable:", err);
-      setErrorMessage(
-        `OCR backend not reachable at ${API_URL}. Please ensure the Python backend is running.`,
-      );
-      setScanState(SCAN_STATES.ERROR);
+      console.warn("[PillScanner] Backend not reachable — will use browser OCR:", err.message);
     }
+    // Always mark OCR as ready since we have browser-side Tesseract.js fallback
+    setOcrReady(true);
   }, []);
 
   useEffect(() => {
@@ -318,7 +316,11 @@ export default function PillScannerPage() {
     setScanState(SCAN_STATES.IDLE);
   }, []);
 
-  useEffect(() => () => stopCamera(), [stopCamera]);
+  useEffect(() => () => {
+    stopCamera();
+    // Terminate browser Tesseract worker if initialized
+    tesseractWorkerRef.current?.terminate().catch(() => { });
+  }, [stopCamera]);
 
   // ── 4. Torch / flashlight toggle ─────────────────────────────────────────
   const toggleTorch = useCallback(async () => {
@@ -391,13 +393,16 @@ export default function PillScannerPage() {
     return tmpCanvas.toDataURL("image/png");
   }, []);
 
-  // ── 5b. Send frame to backend /api/ocr instead of browser Tesseract ──────
+  // ── 5b. OCR: try backend first, fall back to browser Tesseract.js ──────
+  const tesseractWorkerRef = useRef(null);
+
   const runOcr = useCallback(async (imageBase64) => {
     if (!imageBase64) return null;
 
     try {
       setProcessingProgress(30);
 
+      // Try backend OCR first
       const res = await fetch(`${API_URL}/api/ocr`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -406,26 +411,50 @@ export default function PillScannerPage() {
 
       setProcessingProgress(80);
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        console.error("[PillScanner] Backend OCR error:", errData);
-        return null;
+      if (res.ok) {
+        const result = await res.json();
+        setProcessingProgress(100);
+        console.log(
+          `[PillScanner] Backend OCR: ${result.processing_ms?.toFixed(0)}ms, confidence: ${result.confidence}`,
+        );
+        return {
+          text: result.text,
+          filteredText: result.filteredText || result.text,
+          confidence: result.confidence,
+        };
       }
 
-      const result = await res.json();
+      // Backend failed — fall back to browser-based Tesseract.js
+      console.warn("[PillScanner] Backend OCR unavailable, using browser Tesseract.js");
+    } catch (err) {
+      console.warn("[PillScanner] Backend OCR fetch failed, falling back:", err.message);
+    }
+
+    // ── Browser-side Tesseract.js fallback ──
+    try {
+      if (!tesseractWorkerRef.current) {
+        const worker = await createWorker("eng");
+        tesseractWorkerRef.current = worker;
+      }
+
+      setProcessingProgress(50);
+
+      const { data } = await tesseractWorkerRef.current.recognize(imageBase64);
+
       setProcessingProgress(100);
 
-      console.log(
-        `[PillScanner] Backend OCR: ${result.processing_ms?.toFixed(0)}ms, confidence: ${result.confidence}`,
-      );
+      console.log(`[PillScanner] Browser OCR: confidence ${data.confidence}`);
+
+      const words = data.words || [];
+      const highConf = words.filter((w) => w.confidence >= 50).map((w) => w.text);
 
       return {
-        text: result.text,
-        filteredText: result.filteredText || result.text,
-        confidence: result.confidence,
+        text: data.text,
+        filteredText: highConf.length > 0 ? highConf.join(" ") : data.text,
+        confidence: data.confidence,
       };
     } catch (err) {
-      console.error("[PillScanner] OCR fetch error:", err);
+      console.error("[PillScanner] Browser OCR also failed:", err);
       return null;
     }
   }, []);
@@ -633,8 +662,8 @@ export default function PillScannerPage() {
             {/* VCF status badge */}
             <div
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${vcfLoaded
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                  : "bg-amber-50 border-amber-200 text-amber-700"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                : "bg-amber-50 border-amber-200 text-amber-700"
                 }`}
             >
               <span
@@ -1030,8 +1059,8 @@ export default function PillScannerPage() {
                   <button
                     onClick={toggleTorch}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border cursor-pointer ${torchOn
-                        ? "bg-amber-50 border-amber-300 text-amber-700"
-                        : "border-neutral-200 hover:border-neutral-300 text-neutral-600"
+                      ? "bg-amber-50 border-amber-300 text-amber-700"
+                      : "border-neutral-200 hover:border-neutral-300 text-neutral-600"
                       }`}
                   >
                     <span>{torchOn ? "🔦" : "💡"}</span>

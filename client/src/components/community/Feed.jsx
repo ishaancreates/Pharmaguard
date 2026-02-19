@@ -106,9 +106,9 @@ export default function Feed({ refreshTrigger, drugOptions = [], geneOptions = [
             <button
               key={`g-${g}`}
               onClick={() => setFilterGene(filterGene === g ? "" : g)}
-              className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${filterGene === g
-                  ? "bg-[#a9bb9d]/20 text-[#4d6944] border-[#a9bb9d]/40"
-                  : "bg-white text-[#999] border-[#a9bb9d]/15 hover:border-[#a9bb9d]/30 hover:text-[#6b8760]"
+              className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border transition-all ${filterGene === g
+                ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                : "bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:text-emerald-600"
                 }`}
             >
               <IconDna className="w-3 h-3" />
@@ -120,9 +120,9 @@ export default function Feed({ refreshTrigger, drugOptions = [], geneOptions = [
             <button
               key={`d-${d}`}
               onClick={() => setFilterDrug(filterDrug === d ? "" : d)}
-              className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${filterDrug === d
-                  ? "bg-[#a9bb9d]/20 text-[#4d6944] border-[#a9bb9d]/40"
-                  : "bg-white text-[#999] border-[#a9bb9d]/15 hover:border-[#a9bb9d]/30 hover:text-[#6b8760]"
+              className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border transition-all ${filterDrug === d
+                ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                : "bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:text-emerald-600"
                 }`}
             >
               <IconPill className="w-3 h-3" />
@@ -199,8 +199,8 @@ export default function Feed({ refreshTrigger, drugOptions = [], geneOptions = [
                 <button
                   onClick={() => handleVote(post.id, "up")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors ${voteState === "up"
-                    ? "bg-[#a9bb9d]/15 text-[#5a7a52]"
-                    : "text-[#999] hover:bg-[#a9bb9d]/5 hover:text-[#5a7a52]"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-600"
                     }`}
                 >
                   <IconArrowUp className="w-3.5 h-3.5" />
@@ -219,13 +219,13 @@ export default function Feed({ refreshTrigger, drugOptions = [], geneOptions = [
               </div>
 
               {/* Comments */}
-              <button className="flex items-center gap-1.5 text-xs text-[#999] font-medium px-3 py-1.5 rounded-full border border-transparent hover:border-[#a9bb9d]/15 hover:bg-[#a9bb9d]/5 hover:text-[#6b8760] transition-all">
+              <button className="flex items-center gap-1.5 text-xs text-slate-500 font-medium px-3 py-1.5 rounded-full border border-transparent hover:bg-slate-50 hover:text-emerald-600 transition-all">
                 <IconMessageCircle className="w-3.5 h-3.5" />
                 {post.comments_count ?? 0} Comments
               </button>
 
               {/* Share */}
-              <button className="flex items-center gap-1.5 text-xs text-[#999] font-medium px-3 py-1.5 rounded-full border border-transparent hover:border-[#a9bb9d]/15 hover:bg-[#a9bb9d]/5 hover:text-[#6b8760] transition-all">
+              <button className="flex items-center gap-1.5 text-xs text-slate-500 font-medium px-3 py-1.5 rounded-full border border-transparent hover:bg-slate-50 hover:text-emerald-600 transition-all">
                 <IconCornerUpRight className="w-3.5 h-3.5" />
                 Share
               </button>

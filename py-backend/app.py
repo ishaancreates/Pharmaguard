@@ -23,7 +23,13 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 import numpy as np
-import pytesseract
+
+try:
+    import pytesseract
+    HAS_TESSERACT = True
+except ImportError:
+    HAS_TESSERACT = False
+
 from analyzer import analyze
 from bson import ObjectId
 
@@ -111,19 +117,21 @@ def summarize_results(results_dict):
         if not all_findings:
             all_findings.append("No drug interaction results were generated.")
 
-        prompt = f"""You are a friendly genetic counselor explaining pharmacogenomic test results to a patient.
+        prompt = f"""You are explaining a genetic test result to a regular person with NO medical knowledge.
+Use very simple, everyday words. Imagine you are talking to a 15-year-old.
+NO jargon. NO medical terms. If you must use one, explain it in brackets right after.
 
-Here are ALL the findings from the patient's analysis:
+Here are the findings:
 
 {chr(10).join(all_findings)}
 
-IMPORTANT INSTRUCTIONS:
-- {actionable_count} out of {len(all_findings)} drugs require dosage adjustment or have safety concerns.
-- If ANY drug has Risk "Adjust Dosage", "Toxic", or "Ineffective", you MUST mention it clearly.
-- Do NOT say everything is fine if there are actionable findings.
-- Explain in simple language what each finding means for the patient.
-- Start with "Based on your genetic profile..."
-- Keep the response concise (3-4 sentences max).
+RULES:
+- {actionable_count} out of {len(all_findings)} drugs need attention (dosage change or safety concern).
+- If ANY drug shows "Adjust Dosage", "Toxic", or "Ineffective" — say it clearly and name the drug.
+- Do NOT say everything is fine if there are problems.
+- Start with "Based on your DNA..."
+- Keep it to 3-4 short, simple sentences.
+- End with: "Always talk to your doctor before changing any medication."
 """
 
         response = client.chat.completions.create(
@@ -211,7 +219,14 @@ def _preprocess_image_for_ocr(img: Image.Image) -> Image.Image:
 def ocr_endpoint():
     """
     Server-side OCR using pytesseract (native Tesseract 5).
+    """
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
 
+    if not HAS_TESSERACT:
+        return jsonify({"error": "OCR not available — Tesseract is not installed on this server"}), 503
+
+    """
     Accepts either:
       - JSON body: { "image": "<base64-encoded image data>" }
       - Multipart form: file field named "image"
@@ -504,8 +519,30 @@ def analyze_endpoint():
             summary_text = summarize_results(final_json)
             if summary_text:
                 final_json["summary"]["llm_explanation"] = summary_text
-        except Exception:
-            pass
+            else:
+                print("[LLM] summarize_results returned None — check GROQ_API_KEY")
+        except Exception as e:
+            print(f"[LLM] Summary generation error: {e}")
+            traceback.print_exc()
+
+        # Fallback: generate a basic summary if LLM didn't produce one
+        if "llm_explanation" not in final_json.get("summary", {}):
+            critical = final_json.get("summary", {}).get("criticalDrugs", [])
+            total = final_json.get("summary", {}).get("drugsAnalyzed", 0)
+            if critical:
+                drug_names = ", ".join(c["drug"] if isinstance(c, dict) else str(c) for c in critical)
+                final_json["summary"]["llm_explanation"] = (
+                    f"Based on your DNA, {len(critical)} out of {total} medications tested may not work "
+                    f"normally for you: {drug_names}. Your body processes these drugs differently, "
+                    f"which means your doctor may need to adjust the dose or choose an alternative. "
+                    f"Always talk to your doctor before changing any medication."
+                )
+            elif total > 0:
+                final_json["summary"]["llm_explanation"] = (
+                    f"Based on your DNA, all {total} medications tested appear to work normally with your "
+                    f"genetic profile. No dosage changes are needed. Always talk to your doctor before "
+                    f"changing any medication."
+                )
 
         return jsonify(final_json), 200
 

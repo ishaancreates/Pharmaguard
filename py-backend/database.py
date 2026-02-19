@@ -1,9 +1,10 @@
 import os
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
-# User provided Atlas connection string
-# Appended /pharmaguard to specify the database name
-MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://1studyzone111_db_user:AMPK123akv@cluster0.6aiwepe.mongodb.net/pharmaguard?retryWrites=true&w=majority")
+load_dotenv()
+
+MONGO_URI = os.environ.get("MONGO_URI", "")
 
 def get_db():
     try:
