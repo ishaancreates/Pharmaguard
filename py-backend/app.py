@@ -13,6 +13,12 @@ import time
 import tempfile
 import traceback
 from datetime import datetime
+from pathlib import Path
+
+# Load .env before anything else
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent / ".env")
+
 from bson import ObjectId
 
 from flask import Flask, request, jsonify

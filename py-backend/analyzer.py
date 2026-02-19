@@ -350,12 +350,16 @@ def _generate_llm_explanation(
     Call an OpenAI-compatible API to generate a rich clinical explanation.
     Returns None if no API key is set or the call fails.
     """
-    api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("LLM_API_KEY")
+    api_key = (
+        os.environ.get("GROQ_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or os.environ.get("LLM_API_KEY")
+    )
     if not api_key:
         return None
 
-    base_url = os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1")
-    model = os.environ.get("LLM_MODEL", "gpt-4o-mini")
+    base_url = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    model = os.environ.get("LLM_MODEL", "llama-3.3-70b-versatile")
 
     variant_details = []
     for v in variants:
@@ -409,13 +413,16 @@ def _generate_llm_explanation(
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}",
+                "User-Agent": "Pharmaguard/1.0",
             },
             method="POST",
         )
 
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            return data["choices"][0]["message"]["content"].strip()
+            content = data["choices"][0]["message"]["content"].strip()
+            print(f"[LLM] ✓ Generated explanation for {drug} ({model}, {len(content)} chars)")
+            return content
 
     except Exception as e:
         print(f"[LLM] Explanation generation failed: {e}")
