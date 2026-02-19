@@ -278,6 +278,17 @@ def couple_analysis():
     # 3. Calculate Inheritance
     try:
         compatibility_report = calculate_inheritance(user_genes, partner_genes)
+        # Convert ObjectIds to strings for JSON serialization
+        for g in user_genes:
+            if "_id" in g:
+                g["_id"] = str(g["_id"])
+            if "user_id" in g and isinstance(g["user_id"], ObjectId):
+                g["user_id"] = str(g["user_id"])
+                
+        for g in partner_genes:
+            if "_id" in g:
+                g["_id"] = str(g["_id"])
+
         return jsonify({
             "compatibility": compatibility_report,
             "user_profile": user_genes,

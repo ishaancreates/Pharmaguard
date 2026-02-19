@@ -1,0 +1,7 @@
+##fileformat=VCFv4.2
+##fileDate=20231027
+##source=PharmaguardTest
+##INFO=<ID=GENE,Number=1,Type=String,Description="Gene name">
+##INFO=<ID=STAR,Number=1,Type=String,Description="Star allele designation">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+# No variants = Wild Type (*1/*1)

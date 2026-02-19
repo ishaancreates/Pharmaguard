@@ -9,31 +9,34 @@ from typing import Dict, List, Tuple
 from collections import Counter
 from pgx_knowledgebase import ALLELE_FUNCTION, KNOWN_GENES, _function_score, infer_phenotype, EXTENSIVE, INTERMEDIATE, POOR, ULTRA_RAPID, INDETERMINATE
 
-def extract_alleles(gene_data: dict) -> List[str]:
+def extract_alleles(gene_data) -> List[str]:
     """
     Extract the two alleles for a gene.
     Supports:
-    1. "diplotype": "*1/*4" (from stored profile)
-    2. "detectedAlleles": [...] (from fresh analysis)
+    1. gene_data as dict with "diplotype": "*1/*4"
+    2. gene_data as list of variant dicts (detectedAlleles)
+    3. gene_data as dict with "detectedAlleles" list
     """
-    # 1. Try direct diplotype string
-    dip = gene_data.get("diplotype")
-    if dip and "/" in dip:
-        return dip.split("/")
+    # Case A: gene_data is a list of variants
+    if isinstance(gene_data, list):
+        detected_alleles = gene_data
+    else:
+        # Case B: gene_data is a dict (gene object)
+        # 1. Try direct diplotype string
+        dip = gene_data.get("diplotype")
+        if dip and "/" in dip:
+            return dip.split("/")
+            
+        # 2. Get detected alleles list
+        detected_alleles = gene_data.get("detectedAlleles", gene_data.get("detected_alleles", []))
 
-    # 2. Fallback to parsing detected variants
-    # detected_alleles comes from AnalysisResult.genes[i].detected_alleles (list of dicts)
-    
-    # We need to handle:
-    # 1. Homozygous variant (*4/*4) -> variant dict has genotype '1/1'
-    # 2. Heterozygous variant (*1/*4) -> variant dict has genotype '0/1'
-    # 3. Compound heterozygous (*4/*5) -> two variant dicts, each '0/1'
-    
     alleles = []
     
-    detected_alleles = gene_data.get("detectedAlleles", gene_data.get("detected_alleles", []))
-    
     for v in detected_alleles:
+        # If v is not a dict (shouldn't happen if structure is correct), skip
+        if not isinstance(v, dict):
+            continue
+            
         if not v.get("isVariant", v.get("is_variant", False)):
             continue
             
@@ -57,6 +60,7 @@ def extract_alleles(gene_data: dict) -> List[str]:
         
     # If we have more than 2 (complex case), take the first two found variants/wildtypes
     return alleles[:2]
+
 
 def get_phenotype_for_diplotype(gene: str, allele1: str, allele2: str) -> str:
     """
