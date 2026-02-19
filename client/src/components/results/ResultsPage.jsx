@@ -21,6 +21,11 @@ import {
     IconSparkles,
     IconCode,
     IconX,
+    IconInfoCircle,
+    IconEye,
+    IconEyeOff,
+    IconBulb,
+    IconHeartbeat,
 } from "@tabler/icons-react";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -82,6 +87,121 @@ const RISK = {
 
 function risk(r) {
     return RISK[r] || RISK.Unknown;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HELPERS — derive human-readable insights from drug result data
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const PHENO_LABELS = {
+    NM: "Normal Metabolizer",
+    IM: "Intermediate Metabolizer",
+    PM: "Poor Metabolizer",
+    RM: "Rapid Metabolizer",
+    URM: "Ultra-rapid Metabolizer",
+};
+
+function phenoFull(code) {
+    return PHENO_LABELS[code] || code || "Unknown";
+}
+
+/** One-sentence verdict per drug */
+function getVerdict(result) {
+    const riskLabel = result.risk_assessment?.risk_label ?? result.risk ?? "Unknown";
+    const drug = result.drug || "this drug";
+    const gene = result.pharmacogenomic_profile?.primary_gene ?? result.gene ?? "";
+    const phenotype = phenoFull(result.pharmacogenomic_profile?.phenotype ?? result.phenotype);
+
+    switch (riskLabel) {
+        case "Safe":
+            return `${drug} is expected to work normally for you.`;
+        case "Adjust Dosage":
+            return `${drug} may need a dosage adjustment based on your ${gene} activity.`;
+        case "Toxic":
+            return `${drug} poses a toxicity risk due to your ${phenotype.toLowerCase()} status.`;
+        case "Ineffective":
+            return `${drug} is likely ineffective for you — your body processes it too quickly.`;
+        default:
+            return `Insufficient data to fully assess ${drug}.`;
+    }
+}
+
+/** Cause-effect "Why?" explanation */
+function getWhyExplanation(result) {
+    const riskLabel = result.risk_assessment?.risk_label ?? result.risk ?? "Unknown";
+    const drug = result.drug || "this drug";
+    const gene = result.pharmacogenomic_profile?.primary_gene ?? result.gene ?? "";
+    const phenotype = phenoFull(result.pharmacogenomic_profile?.phenotype ?? result.phenotype);
+    const diplotype = result.pharmacogenomic_profile?.diplotype || "";
+    const mechanism = result.llm_generated_explanation?.mechanism ?? result.mechanism ?? "";
+
+    if (mechanism) {
+        return mechanism;
+    }
+
+    switch (riskLabel) {
+        case "Safe":
+            return `Because your ${gene} enzyme works normally${diplotype ? ` (${diplotype})` : ""}, your body processes ${drug} at expected levels. No genetic variants were found that would alter its effectiveness or safety.`;
+        case "Adjust Dosage":
+            return `Your ${gene} gene shows a ${phenotype.toLowerCase()} pattern${diplotype ? ` (${diplotype})` : ""}, meaning your body breaks down ${drug} at an altered rate. Your doctor may need to adjust the dosage to ensure it works safely.`;
+        case "Toxic":
+            return `Your ${gene} gene indicates you are a ${phenotype.toLowerCase()}${diplotype ? ` (${diplotype})` : ""}. This means ${drug} can accumulate to dangerous levels in your body because it is broken down too slowly.`;
+        case "Ineffective":
+            return `Your ${gene} gene shows you are a ${phenotype.toLowerCase()}${diplotype ? ` (${diplotype})` : ""}. Your body processes ${drug} too rapidly, converting it before it can take effect, making standard doses unlikely to work.`;
+        default:
+            return `There is not enough genetic data to fully determine how your body handles ${drug}. Consult your doctor for personalized guidance.`;
+    }
+}
+
+/** Summarize variants as a human-readable statement */
+function getVariantSummary(variants, gene) {
+    if (!variants || variants.length === 0) return null;
+    const harmfulCount = variants.filter(
+        (v) => (v.is_variant ?? v.isVariant) === true
+    ).length;
+    const totalCount = variants.length;
+    if (harmfulCount === 0) {
+        return `No harmful ${gene || ""} variants were detected. All ${totalCount} position${totalCount > 1 ? "s" : ""} checked showed normal (reference) genotypes.`;
+    }
+    return `${harmfulCount} variant${harmfulCount > 1 ? "s" : ""} detected out of ${totalCount} ${gene || ""} position${totalCount > 1 ? "s" : ""} checked. These variants may alter how your body processes medications metabolized by ${gene}.`;
+}
+
+/** "What this means for you" real-world implications */
+function getRealWorldMeaning(result) {
+    const riskLabel = result.risk_assessment?.risk_label ?? result.risk ?? "Unknown";
+    const drug = result.drug || "this drug";
+
+    switch (riskLabel) {
+        case "Safe":
+            return [
+                "Standard doses are appropriate",
+                "No increased risk of side effects from genetic factors",
+                "No need for genetic-based dose changes",
+            ];
+        case "Adjust Dosage":
+            return [
+                `Your doctor may need to adjust ${drug} dosage`,
+                "More frequent monitoring may be recommended",
+                "Alternative medications may be considered",
+            ];
+        case "Toxic":
+            return [
+                `Avoid ${drug} or use significantly reduced doses under supervision`,
+                "Higher risk of severe side effects at standard doses",
+                "Ask your doctor about safer therapeutic alternatives",
+            ];
+        case "Ineffective":
+            return [
+                `Standard doses of ${drug} are unlikely to provide relief`,
+                "Your doctor should consider alternative medications",
+                "Higher doses may be needed but carry additional risks",
+            ];
+        default:
+            return [
+                "Discuss these results with your healthcare provider",
+                "Additional testing may provide clearer guidance",
+            ];
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -187,7 +307,7 @@ export default function ResultsPage({ data }) {
                 </div>
 
                 {/* ────────────  SUMMARY CARDS  ──────────── */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-10">
                     <SummaryCard
                         icon={<IconDna className="w-5 h-5" />}
                         label="Genes Screened"
@@ -208,6 +328,16 @@ export default function ResultsPage({ data }) {
                         label="Critical Alerts"
                         value={summary.criticalAlerts ?? 0}
                         alert={hasCritical}
+                    />
+                    <SummaryCard
+                        icon={<IconAtom className="w-5 h-5" />}
+                        label="Variants Found"
+                        value={genes.reduce((sum, g) => sum + (g.detectedAlleles?.filter((a) => a.isVariant).length ?? 0), 0)}
+                        warn={genes.reduce((sum, g) => sum + (g.detectedAlleles?.filter((a) => a.isVariant).length ?? 0), 0) > 0}
+                        onClick={() => {
+                            const el = document.getElementById("gene-panel");
+                            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
                     />
                 </div>
 
@@ -330,7 +460,7 @@ export default function ResultsPage({ data }) {
                 </section>
 
                 {/* ────────────  GENE PANEL  ──────────── */}
-                <section className="mb-12">
+                <section id="gene-panel" className="mb-12 scroll-mt-20">
                     <SectionHeader
                         icon={<IconDna className="w-5 h-5" />}
                         title="Gene Panel"
@@ -443,19 +573,22 @@ function SectionHeader({ icon, title }) {
     );
 }
 
-function SummaryCard({ icon, label, value, alert = false }) {
+function SummaryCard({ icon, label, value, alert = false, warn = false, onClick }) {
     return (
         <div
+            onClick={onClick}
             className={`rounded-2xl p-5 border transition-shadow ${alert
                 ? "bg-red-50/50 border-red-200"
-                : "bg-white border-[#a9bb9d]/15 hover:shadow-sm"
-                }`}
+                : warn
+                    ? "bg-amber-50/50 border-amber-200"
+                    : "bg-white border-[#a9bb9d]/15 hover:shadow-sm"
+                } ${onClick ? "cursor-pointer hover:shadow-md active:scale-[0.98] transition-all" : ""}`}
         >
-            <div className={`mb-2 ${alert ? "text-red-500" : "text-[#a9bb9d]"}`}>
+            <div className={`mb-2 ${alert ? "text-red-500" : warn ? "text-amber-500" : "text-[#a9bb9d]"}`}>
                 {icon}
             </div>
             <div
-                className={`text-3xl font-bold tracking-tight ${alert ? "text-red-600" : "text-[#1a1a1a]"
+                className={`text-3xl font-bold tracking-tight ${alert ? "text-red-600" : warn ? "text-amber-600" : "text-[#1a1a1a]"
                     }`}
             >
                 {value}
@@ -478,6 +611,9 @@ function EmptyCard({ message }) {
 /* ── Drug Card ──────────────────────────────────────────────────────────── */
 
 function DrugCard({ result, isOpen, onToggle }) {
+    const [showWhy, setShowWhy] = useState(false);
+    const [showRawVariants, setShowRawVariants] = useState(false);
+
     const riskLabel =
         result.risk_assessment?.risk_label ?? result.risk ?? "Unknown";
     const confidence = result.risk_assessment?.confidence_score;
@@ -564,56 +700,113 @@ function DrugCard({ result, isOpen, onToggle }) {
                 />
             </button>
 
+            {/* Verdict + Why */}
+            <div className="px-5 py-3 border-t border-[#a9bb9d]/10">
+                <div className="flex items-start gap-3">
+                    <div className={`shrink-0 mt-0.5 ${cfg.text}`}>{cfg.icon}</div>
+                    <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold leading-relaxed ${cfg.text}`}>
+                            {getVerdict(result)}
+                        </p>
+                        <button
+                            onClick={() => setShowWhy(!showWhy)}
+                            className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#a9bb9d] hover:text-[#6b8760] transition-colors cursor-pointer"
+                        >
+                            <IconBulb className="w-3.5 h-3.5" />
+                            {showWhy ? "Hide explanation" : "Why?"}
+                        </button>
+                    </div>
+                </div>
+                {showWhy && (
+                    <div className="mt-3 ml-7 p-4 rounded-xl bg-[#f6f9f4] border border-[#a9bb9d]/15">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#a9bb9d] mb-1.5">
+                            Why is {result.drug} {riskLabel === "Safe" ? "safe" : riskLabel === "Ineffective" ? "ineffective" : riskLabel === "Toxic" ? "risky" : "flagged"} for you?
+                        </p>
+                        <p className="text-sm text-[#555] leading-relaxed">
+                            {getWhyExplanation(result)}
+                        </p>
+                    </div>
+                )}
+            </div>
+
             {/* Body */}
             {isOpen && (
                 <div className="px-5 pb-5 pt-4 space-y-5 border-t border-[#a9bb9d]/10">
-                    {/* Variants */}
+                    {/* ── What This Means For You ── */}
+                    <div className="rounded-xl bg-gradient-to-br from-[#f6f9f4] to-white border border-[#a9bb9d]/15 p-4">
+                        <h4 className="text-xs font-bold text-[#1a1a1a] mb-3 flex items-center gap-2">
+                            <IconHeartbeat className="w-4 h-4 text-[#a9bb9d]" />
+                            What this means for you
+                        </h4>
+                        <ul className="space-y-2">
+                            {getRealWorldMeaning(result).map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-2.5 text-sm text-[#555] leading-relaxed">
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${cfg.dot}`} />
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* ── Variant Summary (human-readable) ── */}
                     {variants.length > 0 && (
-                        <InfoBlock label="Detected Variants">
-                            <div className="flex flex-wrap gap-2">
-                                {variants.map((v, vi) => (
-                                    <div
-                                        key={vi}
-                                        className="text-xs font-mono bg-[#fafafa] border border-[#a9bb9d]/15 rounded-xl px-3 py-2 text-[#1a1a1a] flex items-center gap-2 flex-wrap"
-                                    >
-                                        <span className="font-bold">
-                                            {v.gene} {v.star_allele ?? v.starAllele}
-                                        </span>
-                                        <span className="text-[#ddd]">·</span>
-                                        <span className="text-[#999]">{v.rsid}</span>
-                                        <span className="text-[#ddd]">·</span>
-                                        <span className="text-[#999]">
-                                            {v.chrom}:{v.pos}
-                                        </span>
-                                        <span className="text-[#ddd]">·</span>
-                                        <span className="text-[#999]">
-                                            {v.ref}&gt;{v.alt?.join(",")}
-                                        </span>
-                                        <span className="text-[#ddd]">·</span>
-                                        <span
-                                            className={
-                                                (v.is_variant ?? v.isVariant)
-                                                    ? "text-amber-600 font-semibold"
-                                                    : "text-emerald-600"
-                                            }
+                        <InfoBlock label="Genetic Variants">
+                            <p className="text-sm text-[#555] leading-relaxed mb-3">
+                                {getVariantSummary(variants, gene)}
+                            </p>
+                            <button
+                                onClick={() => setShowRawVariants(!showRawVariants)}
+                                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#a9bb9d] hover:text-[#6b8760] transition-colors cursor-pointer"
+                            >
+                                {showRawVariants ? <IconEyeOff className="w-3.5 h-3.5" /> : <IconEye className="w-3.5 h-3.5" />}
+                                {showRawVariants ? "Hide raw SNP data" : "Show raw SNP data"}
+                            </button>
+                            {showRawVariants && (
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {variants.map((v, vi) => (
+                                        <div
+                                            key={vi}
+                                            className="text-xs font-mono bg-[#fafafa] border border-[#a9bb9d]/15 rounded-xl px-3 py-2 text-[#1a1a1a] flex items-center gap-2 flex-wrap"
                                         >
-                                            GT {v.genotype}
-                                        </span>
-                                        {(v.functional_impact ?? v.function) &&
-                                            (v.functional_impact ?? v.function) !== "normal" && (
-                                                <>
-                                                    <span className="text-[#ddd]">·</span>
-                                                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#a9bb9d]/10 text-[#6b8760] font-sans font-semibold">
-                                                        {(v.functional_impact ?? v.function).replace(
-                                                            /_/g,
-                                                            " ",
-                                                        )}
-                                                    </span>
-                                                </>
-                                            )}
-                                    </div>
-                                ))}
-                            </div>
+                                            <span className="font-bold">
+                                                {v.gene} {v.star_allele ?? v.starAllele}
+                                            </span>
+                                            <span className="text-[#ddd]">·</span>
+                                            <span className="text-[#999]">{v.rsid}</span>
+                                            <span className="text-[#ddd]">·</span>
+                                            <span className="text-[#999]">
+                                                {v.chrom}:{v.pos}
+                                            </span>
+                                            <span className="text-[#ddd]">·</span>
+                                            <span className="text-[#999]">
+                                                {v.ref}&gt;{v.alt?.join(",")}
+                                            </span>
+                                            <span className="text-[#ddd]">·</span>
+                                            <span
+                                                className={
+                                                    (v.is_variant ?? v.isVariant)
+                                                        ? "text-amber-600 font-semibold"
+                                                        : "text-emerald-600"
+                                                }
+                                            >
+                                                GT {v.genotype}
+                                            </span>
+                                            {(v.functional_impact ?? v.function) &&
+                                                (v.functional_impact ?? v.function) !== "normal" && (
+                                                    <>
+                                                        <span className="text-[#ddd]">·</span>
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#a9bb9d]/10 text-[#6b8760] font-sans font-semibold">
+                                                            {(v.functional_impact ?? v.function).replace(
+                                                                /_/g,
+                                                                " ",
+                                                            )}
+                                                        </span>
+                                                    </>
+                                                )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </InfoBlock>
                     )}
 
@@ -709,6 +902,8 @@ function DrugCard({ result, isOpen, onToggle }) {
 /* ── Gene Card ──────────────────────────────────────────────────────────── */
 
 function GeneCard({ gene, isOpen, onToggle }) {
+    const [showRawAlleles, setShowRawAlleles] = useState(false);
+
     const phenotypeColor = gene.phenotype?.includes("Poor")
         ? "text-red-600 bg-red-50 border-red-200"
         : gene.phenotype?.includes("Intermediate")
@@ -758,43 +953,73 @@ function GeneCard({ gene, isOpen, onToggle }) {
 
             {isOpen && gene.detectedAlleles?.length > 0 && (
                 <div className="px-4 pb-4 border-t border-[#a9bb9d]/10">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-[#a9bb9d] mt-3 mb-2">
-                        Allele Details
+                    {/* Human-readable summary */}
+                    <p className={`text-sm leading-relaxed mt-3 mb-3 ${variantCount === 0
+                        ? "text-emerald-700"
+                        : gene.phenotype?.includes("Normal")
+                            ? "text-emerald-700"
+                            : gene.phenotype?.includes("Intermediate")
+                                ? "text-amber-700"
+                                : gene.phenotype?.includes("Poor")
+                                    ? "text-red-700"
+                                    : "text-[#555]"
+                        }`}>
+                        {variantCount === 0
+                            ? `No harmful ${gene.gene} variants were detected. All ${gene.detectedAlleles.length} positions checked showed normal genotypes.`
+                            : gene.phenotype?.includes("Normal")
+                                ? `${variantCount} variant${variantCount > 1 ? "s" : ""} detected across ${gene.detectedAlleles.length} ${gene.gene} positions, but your overall phenotype is Normal Metabolizer — no clinical action is needed.`
+                                : gene.phenotype?.includes("Intermediate")
+                                    ? `${variantCount} variant${variantCount > 1 ? "s" : ""} detected across ${gene.detectedAlleles.length} ${gene.gene} positions. As an Intermediate Metabolizer, some medications may need dose adjustments.`
+                                    : gene.phenotype?.includes("Poor")
+                                        ? `${variantCount} variant${variantCount > 1 ? "s" : ""} detected across ${gene.detectedAlleles.length} ${gene.gene} positions. As a Poor Metabolizer, several medications may be unsafe at standard doses.`
+                                        : `${variantCount} variant${variantCount > 1 ? "s" : ""} detected across ${gene.detectedAlleles.length} ${gene.gene} positions. Discuss with your doctor for personalized guidance.`}
                     </p>
-                    <div className="space-y-2">
-                        {gene.detectedAlleles.map((a, ai) => (
-                            <div
-                                key={ai}
-                                className={`text-xs rounded-xl p-3 border font-mono ${a.isVariant
-                                    ? "bg-amber-50/50 border-amber-200/70"
-                                    : "bg-[#fafafa] border-[#a9bb9d]/10"
-                                    }`}
-                            >
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                    <span className="font-bold text-[#1a1a1a]">
-                                        {a.starAllele}
-                                    </span>
-                                    <span className="text-[#999]">{a.rsid}</span>
-                                    <span className="text-[#ccc]">
-                                        {a.chrom}:{a.pos}
-                                    </span>
-                                    <span className="text-[#ccc]">
-                                        {a.ref}&gt;{a.alt?.join(",")}
-                                    </span>
-                                    <span
-                                        className={`font-semibold ${a.isVariant ? "text-amber-600" : "text-[#ccc]"}`}
-                                    >
-                                        GT {a.genotype}
-                                    </span>
-                                    {a.function && a.function !== "normal" && (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#a9bb9d]/10 text-[#6b8760] font-sans font-semibold">
-                                            {a.function.replace(/_/g, " ")}
+
+                    {/* Raw allele toggle */}
+                    <button
+                        onClick={() => setShowRawAlleles(!showRawAlleles)}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#a9bb9d] hover:text-[#6b8760] transition-colors cursor-pointer mb-2"
+                    >
+                        {showRawAlleles ? <IconEyeOff className="w-3.5 h-3.5" /> : <IconEye className="w-3.5 h-3.5" />}
+                        {showRawAlleles ? "Hide allele details" : "Show allele details"}
+                    </button>
+
+                    {showRawAlleles && (
+                        <div className="space-y-2">
+                            {gene.detectedAlleles.map((a, ai) => (
+                                <div
+                                    key={ai}
+                                    className={`text-xs rounded-xl p-3 border font-mono ${a.isVariant
+                                        ? "bg-amber-50/50 border-amber-200/70"
+                                        : "bg-[#fafafa] border-[#a9bb9d]/10"
+                                        }`}
+                                >
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                        <span className="font-bold text-[#1a1a1a]">
+                                            {a.starAllele}
                                         </span>
-                                    )}
+                                        <span className="text-[#999]">{a.rsid}</span>
+                                        <span className="text-[#ccc]">
+                                            {a.chrom}:{a.pos}
+                                        </span>
+                                        <span className="text-[#ccc]">
+                                            {a.ref}&gt;{a.alt?.join(",")}
+                                        </span>
+                                        <span
+                                            className={`font-semibold ${a.isVariant ? "text-amber-600" : "text-[#ccc]"}`}
+                                        >
+                                            GT {a.genotype}
+                                        </span>
+                                        {a.function && a.function !== "normal" && (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#a9bb9d]/10 text-[#6b8760] font-sans font-semibold">
+                                                {a.function.replace(/_/g, " ")}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
