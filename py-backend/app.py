@@ -23,7 +23,13 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 import numpy as np
-import pytesseract
+
+try:
+    import pytesseract
+    HAS_TESSERACT = True
+except ImportError:
+    HAS_TESSERACT = False
+
 from analyzer import analyze
 from bson import ObjectId
 
@@ -211,7 +217,14 @@ def _preprocess_image_for_ocr(img: Image.Image) -> Image.Image:
 def ocr_endpoint():
     """
     Server-side OCR using pytesseract (native Tesseract 5).
+    """
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
 
+    if not HAS_TESSERACT:
+        return jsonify({"error": "OCR not available — Tesseract is not installed on this server"}), 503
+
+    """
     Accepts either:
       - JSON body: { "image": "<base64-encoded image data>" }
       - Multipart form: file field named "image"
