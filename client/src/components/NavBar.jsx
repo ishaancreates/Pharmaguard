@@ -36,6 +36,11 @@ const navItems = [
     link: "/ivf",
     icon: <IconHome className="h-4 w-4" />, // Replace with an appropriate IVF icon
   },
+  {
+    name: "Community",
+    link: "/community",
+    icon: <IconHome className="h-4 w-4" />, // Replace with an appropriate IVF icon
+  },
 ];
 
 const logo = (
